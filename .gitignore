@@ -1,0 +1,5 @@
+# ignore lock files (office)
+**/.~*
+
+# ignore backups
+**/*.bak
