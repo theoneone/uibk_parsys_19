@@ -3,3 +3,7 @@
 
 # ignore backups
 **/*.bak
+
+# ignore fuse files
+**/*.fuse*
+
