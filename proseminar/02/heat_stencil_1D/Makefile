@@ -1,18 +1,19 @@
 CC=gcc
 CC_FLAGS=-O2 -std=c99 -Wall -Wextra -pedantic
+NAME=heat_stencil_1D_seq
 
 .PHONEY: all
-all: heat_seq
+all: $(NAME)
 
-heat_seq: heat_seq.c
-        @$(CC) $(CC_FLAGS) $< -o heat_seq
+$(NAME): $(NAME).c
+	@$(CC) $(CC_FLAGS) $< -o $(NAME)
 
 .PHONEY: clean
 clean:
-        @rm heat_seq
+	@rm $(NAME)
 
 .PHONEY: run
 run: all
-        @echo "Sequential:"
-        @./heat_seq
-        @echo
+	@echo "Sequential:"
+	@./$(NAME)
+	@echo
