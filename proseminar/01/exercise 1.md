@@ -6,16 +6,21 @@ The goal of this assignment is to get you acquainted with working on a distribut
 ### Tasks
 
 #### Study how to submit jobs in SGE, how to check their state and how to cancel them.
+- schedule job:
 
+	`qsub job.script`
 
+- check state:
 
+	`qstat`
 
+- delete job:
+
+	`qdel job_ID-list`
 
 
 #### Prepare a submission script that starts an arbitrary executable, e.g. `/bin/hostname`
-
-
-
+e.g. job.script
 
 
 #### In your opionion, what are the 5 most important parameters available when submitting a job and why? What are possible settings of these parameters, and what effect do they have?
@@ -23,8 +28,8 @@ The goal of this assignment is to get you acquainted with working on a distribut
 	
 	-pe parallel-environment number-of-slots: 
 	Reserve number-of-slots CPU cores (number-of-slots may be a range min-max, if max cores are not available, then  SGE tries to run the job on a fewer number of cores, but not less then min #cores), available environments are :
-		- openmpi-Xperhost - X processors per host (number-of-slots must be multiple of X)
-		- openmpi-fillup - fill every host with processes to its host process limit
+		- openmpi-Xperhost number-of-slots - X processors per host (number-of-slots must be multiple of X)
+		- openmpi-fillup number-of-slots - fill every host with processes to its host process limit
 		- openmp - for threaded applications (OpenMP)
 		
 	-i path - path to the file to provide stdin data.
@@ -56,4 +61,24 @@ The goal of this assignment is to get you acquainted with working on a distribut
 
 #### How do you run your program in parallel? What environment setup is required?
 
+compile the sources with options:
+
+- `mpicc`
+
+- `mpic++`
+
+
+add following code lines into the job.script:
+
+choose a rank configuration (see above) - option parsed by qsub:
+
+`#$ -pe openmpi-Xperhost number-of-slots`
+
+load the MPI environment immediately before the program call:
+
+`module load openmpi/4.0.1`
+
+call the program with mpiexec:
+
+`mpiexec -n $NSLOTS path/to/executable`
 
