@@ -7,3 +7,7 @@
 # ignore fuse files
 **/*.fuse*
 
+#ignore old version of merged files
+**/*.old
+**/*.orig
+
