@@ -1,3 +1,15 @@
+# ignore binary files in proseminar exercises
+# ignore all files
+proseminar/*/**/*
+# unignore folders
+!proseminar/*/**/
+# unignore files with extensions
+!proseminar/*/**/*.*
+#unignore makefiles
+!proseminar/*/**/Makefile
+!proseminar/*/**/makefile
+
+
 # ignore lock files (office)
 **/.~*
 
