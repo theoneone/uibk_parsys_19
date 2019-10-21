@@ -1,3 +1,4 @@
+#include <mpi.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -18,6 +19,12 @@ void printTemperature(Vector m, int N);
 // -- simulation code ---
 
 int main(int argc, char **argv) {
+	MPI_Init(&argc, &argv);
+	int size;
+	MPI_Comm_size(MPI_COMM_WORLD, &size); // get the number of ranks
+	int rank;
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank); // get the rank of the caller
+
   // 'parsing' optional input parameter = problem size
   int N = 2000;
   if (argc > 1) {
@@ -106,6 +113,7 @@ int main(int argc, char **argv) {
 
   releaseVector(A);
 
+  MPI_Finalize();
   // done
   return (success) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
