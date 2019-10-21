@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdint.h>
+#include <limits.h>
 #include <stdio.h>
 #include <fcntl.h>
 #include <errno.h>
@@ -30,12 +31,25 @@ retry:
 	return 0;
 }
 
-int main(void)
+int main(int argc, char **argv)
 {
-	uint64_t i, hit = 0, sample_count = 100000;
+	uint64_t i, hit = 0, sample_count = 0;
 	int status = EXIT_FAILURE;
 	uint8_t x, y;
 	int fd;
+
+	if (argc != 2) {
+		fprintf(stderr, "Usage: %s <sample count>\n", argv[0]);
+		return EXIT_FAILURE;
+	}
+
+	errno = 0;
+	sample_count = strtoul(argv[1], NULL, 10);
+
+	if (sample_count == ULONG_MAX && errno != 0) {
+		perror("parsing sample count from command line");
+		return EXIT_FAILURE;
+	}
 
 	fd = open("/dev/random", O_RDONLY);
 	if (fd < 0) {
