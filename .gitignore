@@ -7,7 +7,12 @@
 # ignore fuse files
 **/*.fuse*
 
-#ignore old version of merged files
+# ignore old version of merged files
 **/*.old
 **/*.orig
+
+# ignore eclipse project files (its a makefile project)
+**/*.project
+**/*.settings
+**/*.cproject
 
