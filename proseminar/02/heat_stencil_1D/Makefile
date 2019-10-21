@@ -14,6 +14,6 @@ clean:
 
 .PHONEY: run
 run: all
-        @echo "Sequential:"
+		@echo "Sequential:"
 	@./$(NAME)
-        @echo
+		@echo
