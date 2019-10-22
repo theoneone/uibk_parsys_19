@@ -22,11 +22,7 @@ void releaseIVector(IVector m);
 
 void printTemperature(Vector m, int N);
 
-void print_rank0(int rank, const char *format, ...);
-
 value_t sumVector(Vector V, int N, value_t *min, value_t *max);
-
-int calculate_r0(int N, int T);
 
 int calculate_part(int size, int rank, int N, int T);
 
@@ -108,32 +104,6 @@ void printTemperature(Vector m, int N) {
 	printf("X");
 }
 
-/**
- * print message like printf, but only if rank == 0
- *
- * @param format a format string
- * @param ... parameters defined by the format string, the number of parameters must be equal to format specifiers in %c format
- */
-void print_rank0(int rank, const char *format, ...) {
-	if (rank == 0) {
-		char prev = format[0];
-		int n = prev == '%' ? 1 : 0;
-		for(int i = 1; format[i] != '\0'; ++i) {
-			if(format[i] == '%' && prev != '%') {
-				++n;
-			} else if(format[i] == '%') {
-				--n;
-			}
-			prev = format[i];
-		}
-		va_list valist;
-		va_start(valist, format);
-		vprintf(format, valist);
-		va_end(valist);
-
-	}
-}
-
 value_t sumVector(Vector V, int N, value_t *min, value_t *max) {
 	value_t result = 0.0;
 	if (min != NULL) *min = V[0];
@@ -145,72 +115,6 @@ value_t sumVector(Vector V, int N, value_t *min, value_t *max) {
 		if(max != NULL && V[i] > *max) *max = V[i];
 	}
 	return result;
-}
-
-int calculate_r0(int N, int T) {
-	// ---------- setup ----------
-	// create a buffer for storing temperature fields
-	Vector A = createVector(N);
-	// set up initial conditions in A
-	for (int i = 0; i < N; i++) {
-		A[i] = 273; // temperature is 0° C everywhere (273 K)
-	}
-	// and there is a heat source in one corner
-	int source_x = N / 4;
-	A[source_x] = 273 + 60;
-	printf("Initial:\t");
-	printTemperature(A, N);
-	printf("\n");
-	// ---------- compute ----------
-	// create a second buffer for the computation
-	Vector B = createVector(N);
-	// for each time step ..
-	for (int t = 0; t < T; t++) {
-		// .. we propagate the temperature
-		for (long long i = 0; i < N; i++) {
-			// center stays constant (the heat is still on)
-			if (i == source_x) {
-				B[i] = A[i];
-				continue;
-			}
-			// get temperature at current position
-			value_t tc = A[i];
-			// get temperatures of adjacent cells
-			value_t tl = (i != 0) ? A[i - 1] : tc;
-			value_t tr = (i != N - 1) ? A[i + 1] : tc;
-			// compute new temperature at current position
-			B[i] = tc + 0.2 * (tl + tr + (-2 * tc));
-		}
-		// swap matrices (just pointers, not content)
-		Vector H = A;
-		A = B;
-		B = H;
-		// show intermediate step
-		// modification: keep number of lines to print stable
-		if (!(t % N)) {
-			printf("Step t=%d:\t", t);
-			printTemperature(A, N);
-			printf("\n");
-		}
-	}
-	releaseVector(B);
-	// ---------- check ----------
-	printf("Final:\t\t");
-	printTemperature(A, N);
-	printf("\n");
-	int success = 1;
-	for (long long i = 0; i < N; i++) {
-		value_t temp = A[i];
-		if (273 <= temp && temp <= 273 + 60)
-			continue;
-
-		success = 0;
-		break;
-	}
-	printf("Verification: %s\n", (success) ? "OK" : "FAILED");
-	// ---------- cleanup ----------
-	releaseVector(A);
-	return success;
 }
 
 int calculate_part(int size, int rank, int N_elements, int T) {
@@ -327,21 +231,6 @@ int calculate_part(int size, int rank, int N_elements, int T) {
 				printf("\n");
 			}
 		}
-//XXX
-//		if (!(t % N) && rank == 0) {
-//			for (int r = 1; r < size; ++r) {
-//				if(MPI_Recv(A+r*size, N, MPI_DOUBLE, rank, 21, MPI_COMM_WORLD, MPI_STATUS_IGNORE) != MPI_SUCCESS) {
-//					fprintf(stderr, "MPI_Recv failed (collect) at rank %d.\n", rank);
-//				}
-//			}
-//			printf("Step t=%d:\t", t);
-//			printTemperature(A, N);
-//			printf("\n");
-//		} else if (!(t % N)) {
-//			if(MPI_Send(A, N, MPI_DOUBLE, 0, 21, MPI_COMM_WORLD) != MPI_SUCCESS) {
-//				fprintf(stderr, "MPI_Send failed (collect) at rank %d.\n", rank);
-//			}
-//		}
 	}
 	releaseVector(B);
 	// ---------- check ----------
