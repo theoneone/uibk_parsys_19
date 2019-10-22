@@ -39,7 +39,11 @@ int main(void)
 
 		free(line);
 
-		if (__builtin_add_overflow(total_hit, local_hit, &total_hit)) {
+		total_hit += local_hit;
+		total_samples += local_samples;
+
+		/*if (__builtin_add_overflow(total_hit, local_hit,
+					   &total_hit)) {
 			fprintf(stderr, "%zu: hit count overflow!\n", lineno);
 			status = EXIT_FAILURE;
 			break;
@@ -51,7 +55,7 @@ int main(void)
 				lineno);
 			status = EXIT_FAILURE;
 			break;
-		}
+		}*/
 	}
 
 	if (status == EXIT_SUCCESS) {
