@@ -51,9 +51,9 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	fd = open("/dev/random", O_RDONLY);
+	fd = open("/dev/urandom", O_RDONLY);
 	if (fd < 0) {
-		perror("/dev/random");
+		perror("/dev/urandom");
 		return EXIT_FAILURE;
 	}
 
