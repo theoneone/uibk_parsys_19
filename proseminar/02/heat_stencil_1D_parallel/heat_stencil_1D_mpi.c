@@ -24,6 +24,8 @@ void printTemperature(Vector m, int N);
 
 void print_rank0(int rank, const char *format, ...);
 
+value_t sumVector(Vector V, int N, value_t *min, value_t *max);
+
 int calculate_r0(int N, int T);
 
 int calculate_part(int size, int rank, int N, int T);
@@ -130,6 +132,19 @@ void print_rank0(int rank, const char *format, ...) {
 		va_end(valist);
 
 	}
+}
+
+value_t sumVector(Vector V, int N, value_t *min, value_t *max) {
+	value_t result = 0.0;
+	if (min != NULL) *min = V[0];
+	if (max != NULL) *max = V[0];
+
+	for (int i = 0; i < N; ++i) {
+		result += V[i];
+		if(min != NULL && V[i] < *min) *min = V[i];
+		if(max != NULL && V[i] > *max) *max = V[i];
+	}
+	return result;
 }
 
 int calculate_r0(int N, int T) {
@@ -306,9 +321,11 @@ int calculate_part(int size, int rank, int N_elements, int T) {
 			if(MPI_Gatherv(A, N, MPI_DOUBLE, A, rcv_counts, rcv_displs, MPI_DOUBLE, 0, MPI_COMM_WORLD) != MPI_SUCCESS) {
 				fprintf(stderr, "MPI_Gatherv failed at rank %d.\n", rank);
 			}
-			printf("Step t=%d:\t", t);
-			printTemperature(A, N);
-			printf("\n");
+			if (rank == 0) {
+				printf("Step t=%d:\t", t);
+				printTemperature(A, N);
+				printf("\n");
+			}
 		}
 //XXX
 //		if (!(t % N) && rank == 0) {
@@ -341,8 +358,11 @@ int calculate_part(int size, int rank, int N_elements, int T) {
 			success = 0;
 			break;
 		}
+	printf("Verification: %s\n", (success) ? "OK" : "FAILED");
+	value_t cs, min_el, max_el;
+	cs = sumVector(A, N, &min_el, &max_el);
+	printf("Checksum: %f, (min = %f°C, max = %f°C)\n", cs, min_el-273, max_el-273);
 	}
-	print_rank0(rank, "Verification: %s\n", (success) ? "OK" : "FAILED");
 	// ---------- cleanup ----------
 	releaseVector(A);
 	return success;

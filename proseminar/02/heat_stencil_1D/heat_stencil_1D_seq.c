@@ -15,6 +15,8 @@ void releaseVector(Vector m);
 
 void printTemperature(Vector m, int N);
 
+value_t sumVector(Vector V, int N, value_t *min, value_t *max);
+
 // -- simulation code ---
 
 int main(int argc, char **argv) {
@@ -101,6 +103,9 @@ int main(int argc, char **argv) {
   }
 
   printf("Verification: %s\n", (success) ? "OK" : "FAILED");
+  value_t cs, min_el, max_el;
+  cs = sumVector(A, N, &min_el, &max_el);
+  printf("Checksum: %f, (min = %f°C, max = %f°C)\n", cs, min_el-273, max_el-273);
 
   // ---------- cleanup ----------
 
@@ -152,4 +157,17 @@ void printTemperature(Vector m, int N) {
   }
   // right wall
   printf("X");
+}
+
+value_t sumVector(Vector V, int N, value_t *min, value_t *max) {
+	value_t result = 0.0;
+	if (min != NULL) *min = V[0];
+	if (max != NULL) *max = V[0];
+
+	for (int i = 0; i < N; ++i) {
+		result += V[i];
+		if(min != NULL && V[i] < *min) *min = V[i];
+		if(max != NULL && V[i] > *max) *max = V[i];
+	}
+	return result;
 }
