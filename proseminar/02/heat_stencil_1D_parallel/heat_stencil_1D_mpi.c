@@ -239,10 +239,12 @@ int calculate_part(int size, int rank, int N_elements, int T) {
 	}
 	// and there is a heat source in one corner
 	int source_x = -1; // negative value: source not in this rank
-	if (N * rank < N_elements / 4 && N_elements / 4 < (N+1) * rank) {
+	if (rcv_displs[rank] <= N_elements / 4 && rcv_displs[rank] + N > N_elements / 4) {
 		source_x = (N_elements / 4) % N;
 		A[source_x] = 273 + 60;
+		printf("rank %d, seed at %d, heat = %f\n", rank, source_x, A[source_x]);
 	}
+	printf("rank %d, seed at %d (find source array)\n", rank, source_x);
 	if (rank == 0) {
 		printf("Initial:\t");
 		printTemperature(A, N_elements);
