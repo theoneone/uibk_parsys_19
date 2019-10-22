@@ -10,10 +10,15 @@ typedef double value_t;
 // -- vector utilities --
 
 typedef value_t *Vector;
+typedef int *IVector;
 
 Vector createVector(int N);
 
 void releaseVector(Vector m);
+
+IVector createIVector(int N);
+
+void releaseIVector(IVector m);
 
 void printTemperature(Vector m, int N);
 
@@ -21,7 +26,7 @@ void print_rank0(int rank, const char *format, ...);
 
 int calculate_r0(int N, int T);
 
-void calculate_part(int size, int rank, int N, int T);
+int calculate_part(int size, int rank, int N, int T);
 
 // -- simulation code ---
 
@@ -43,7 +48,7 @@ int main(int argc, char **argv) {
 	if (rank == 0) {
 		printf("Computing heat-distribution for room size N=%d for T=%d timesteps\n", N, T);
 	}
-	calculate_part(size, rank, N, T);
+	success = calculate_part(size, rank, N, T);
 
 	MPI_Finalize();
 	// done
@@ -56,6 +61,13 @@ Vector createVector(int N) {
 }
 
 void releaseVector(Vector m) { free(m); }
+
+IVector createIVector(int N) {
+	// create data and index vector
+	return malloc(sizeof(int) * N);
+}
+
+void releaseIVector(IVector m) { free(m); }
 
 void printTemperature(Vector m, int N) {
 	const char *colors = " .-:=+*^X#%@";
@@ -186,9 +198,31 @@ int calculate_r0(int N, int T) {
 	return success;
 }
 
-void calculate_part(int size, int rank, int N_elements, int T) {
+int calculate_part(int size, int rank, int N_elements, int T) {
 	// ---------- setup ----------
 	int N = (N_elements + size-1) / size;
+	IVector rcv_counts, rcv_displs;
+	rcv_counts = createIVector(size);
+	rcv_displs = createIVector(size);
+	int displ = 0;
+	for (int i = 0; i < size; ++i) {
+		rcv_counts[i] = N;
+		rcv_displs[i] = displ;
+		displ += N;
+	}
+	printf("rank: %d, N = %d, N_el = %d, last=%d\n", rank, N, N_elements, N_elements % N);//XXX
+	rcv_counts[size-1] = N_elements % N == 0 ? N : N_elements % N;
+	if (rank == size-1) {
+		N = rcv_counts[rank]; // last rank might be not entirely filled, remove unnecessary elements
+	}
+	printf("cnt: ");//XXX 7 Zeilen
+	for(int i=0; i<size;++i) printf("%d, ", rcv_counts[i]);
+	printf("\n");
+	printf("dsp: ");
+	for(int i=0; i<size;++i) printf("%d, ", rcv_displs[i]);
+	printf(" %d\n", rcv_counts[size-1]+rcv_displs[size-1]);
+	printf("rank %d, N=%d\n", rank, N);
+
 	// create a buffer A for storing temperature fields
 	// create a second buffer B for the computation
 	Vector A, B;
@@ -218,10 +252,14 @@ void calculate_part(int size, int rank, int N_elements, int T) {
 	// for each time step ..
 	for (int t = 0; t < T; t++) {
 		if (rank != 0) {
-			MPI_Send(&(A[0]), 1, MPI_INT, rank-1, 42, MPI_COMM_WORLD);
+			if(MPI_Send(&(A[0]), 1, MPI_DOUBLE, rank-1, 42, MPI_COMM_WORLD) != MPI_SUCCESS) {
+				fprintf(stderr, "MPI_Send failed (left) at rank %d.\n", rank);
+			}
 		}
 		if (rank != size-1) {
-			MPI_Send(&(A[N-1]), 1, MPI_INT, rank+1, 42, MPI_COMM_WORLD);
+			if(MPI_Send(&(A[N-1]), 1, MPI_DOUBLE, rank+1, 42, MPI_COMM_WORLD) != MPI_SUCCESS) {
+				fprintf(stderr, "MPI_Send failed (right) at rank %d.\n", rank);
+			}
 		}
 		// .. we propagate the temperature
 		for (long long i = 0; i < N; i++) {
@@ -238,14 +276,18 @@ void calculate_part(int size, int rank, int N_elements, int T) {
 			if (i != 0) {
 				tl = A[i-1];
 			} else if (i == 0 && rank != 0) {
-				MPI_Recv(&tl, 1, MPI_INT, rank-1, 42, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+				if(MPI_Recv(&tl, 1, MPI_DOUBLE, rank-1, 42, MPI_COMM_WORLD, MPI_STATUS_IGNORE) != MPI_SUCCESS) {
+					fprintf(stderr, "MPI_Recv failed (left) at rank %d.\n", rank);
+				}
 			} else {
 				tl = tc;
 			}
 			if (i != N-1) {
 				tr = A[i+1];
 			} else if (i == N-1 && rank != size-1) {
-				MPI_Recv(&tr, 1, MPI_INT, rank+1, 42, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+				if(MPI_Recv(&tr, 1, MPI_DOUBLE, rank+1, 42, MPI_COMM_WORLD, MPI_STATUS_IGNORE) != MPI_SUCCESS) {
+					fprintf(stderr, "MPI_Recv failed (right) at rank %d.\n", rank);
+				}
 			} else {
 				tr = tc;
 			}
@@ -258,16 +300,29 @@ void calculate_part(int size, int rank, int N_elements, int T) {
 		B = H;
 		// show intermediate step
 		// modification: keep number of lines to print stable
-		if (!(t % N) && rank == 0) {
-			for (int r = 1; r < size; ++r) {
-				MPI_Recv(A+r*size, N, MPI_INT, rank, 21, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+		if (!(t % N)) {
+			if(MPI_Gatherv(A, N, MPI_DOUBLE, A, rcv_counts, rcv_displs, MPI_DOUBLE, 0, MPI_COMM_WORLD) != MPI_SUCCESS) {
+				fprintf(stderr, "MPI_Gatherv failed at rank %d.\n", rank);
 			}
 			printf("Step t=%d:\t", t);
 			printTemperature(A, N);
 			printf("\n");
-		} else if (!(t % N)) {
-			MPI_Send(A, N, MPI_INT, 0, 21, MPI_COMM_WORLD);
 		}
+//XXX
+//		if (!(t % N) && rank == 0) {
+//			for (int r = 1; r < size; ++r) {
+//				if(MPI_Recv(A+r*size, N, MPI_DOUBLE, rank, 21, MPI_COMM_WORLD, MPI_STATUS_IGNORE) != MPI_SUCCESS) {
+//					fprintf(stderr, "MPI_Recv failed (collect) at rank %d.\n", rank);
+//				}
+//			}
+//			printf("Step t=%d:\t", t);
+//			printTemperature(A, N);
+//			printf("\n");
+//		} else if (!(t % N)) {
+//			if(MPI_Send(A, N, MPI_DOUBLE, 0, 21, MPI_COMM_WORLD) != MPI_SUCCESS) {
+//				fprintf(stderr, "MPI_Send failed (collect) at rank %d.\n", rank);
+//			}
+//		}
 	}
 	releaseVector(B);
 	// ---------- check ----------
@@ -288,4 +343,5 @@ void calculate_part(int size, int rank, int N_elements, int T) {
 	print_rank0(rank, "Verification: %s\n", (success) ? "OK" : "FAILED");
 	// ---------- cleanup ----------
 	releaseVector(A);
+	return success;
 }
