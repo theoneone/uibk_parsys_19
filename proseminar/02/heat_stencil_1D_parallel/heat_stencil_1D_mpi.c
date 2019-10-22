@@ -145,15 +145,18 @@ int calculate_part(int size, int rank, int N_elements, int T) {
 	// create a buffer A for storing temperature fields
 	// create a second buffer B for the computation
 	Vector A, B;
+	int NN; // length of A (N is length considered for calculation)
 	if (rank == 0) {
 		A = createVector(N_elements);
 		B = createVector(N_elements);
+		NN = N_elements;
 	} else {
 		A = createVector(N);
 		B = createVector(N);
+		NN = N;
 	}
 	// set up initial conditions in A
-	for (int i = 0; i < N; i++) {
+	for (int i = 0; i < NN; i++) {
 		A[i] = 273; // temperature is 0° C everywhere (273 K)
 	}
 	// and there is a heat source in one corner
@@ -227,7 +230,7 @@ int calculate_part(int size, int rank, int N_elements, int T) {
 			}
 			if (rank == 0) {
 				printf("Step t=%d:\t", t);
-				printTemperature(A, N);
+				printTemperature(A, N_elements);
 				printf("\n");
 			}
 		}
@@ -235,11 +238,14 @@ int calculate_part(int size, int rank, int N_elements, int T) {
 	releaseVector(B);
 	// ---------- check ----------
 	int success = 1;
+	if(MPI_Gatherv(A, N, MPI_DOUBLE, A, rcv_counts, rcv_displs, MPI_DOUBLE, 0, MPI_COMM_WORLD) != MPI_SUCCESS) {
+		fprintf(stderr, "MPI_Gatherv failed at rank %d.\n", rank);
+	}
 	if (rank == 0) {
 		printf("Final:\t\t");
-		printTemperature(A, N);
+		printTemperature(A, N_elements);
 		printf("\n");
-		for (long long i = 0; i < N; i++) {
+		for (long long i = 0; i < N_elements; i++) {
 			value_t temp = A[i];
 			if (273 <= temp && temp <= 273 + 60)
 				continue;
@@ -249,7 +255,7 @@ int calculate_part(int size, int rank, int N_elements, int T) {
 		}
 	printf("Verification: %s\n", (success) ? "OK" : "FAILED");
 	value_t cs, min_el, max_el;
-	cs = sumVector(A, N, &min_el, &max_el);
+	cs = sumVector(A, N_elements, &min_el, &max_el);
 	printf("Checksum: %f, (min = %f°C, max = %f°C)\n", cs, min_el-273, max_el-273);
 	}
 	// ---------- cleanup ----------
