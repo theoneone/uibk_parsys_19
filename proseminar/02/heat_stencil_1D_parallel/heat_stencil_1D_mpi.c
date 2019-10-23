@@ -175,20 +175,29 @@ int calculate_part(int size, int rank, int N_elements, int T) {
 	// ---------- compute ----------
 	// for each time step ..
 	for (int t = 0; t < T; t++) {
+		value_t r_tl, r_tr;
 		if (rank != 0) {
-			if(MPI_Send(&(A[0]), 1, MPI_DOUBLE, rank-1, 42, MPI_COMM_WORLD) != MPI_SUCCESS) {
+			if(MPI_Ssend(&(A[0]), 1, MPI_DOUBLE, rank-1, 42, MPI_COMM_WORLD) != MPI_SUCCESS) {
 				fprintf(stderr, "MPI_Send failed (left) at rank %d.\n", rank);
+			}
+			if(MPI_Recv(&r_tl, 1, MPI_DOUBLE, rank-1, 42, MPI_COMM_WORLD, MPI_STATUS_IGNORE) != MPI_SUCCESS) {
+				fprintf(stderr, "MPI_Recv failed (left) at rank %d.\n", rank);
 			}
 		}
 		if (rank != size-1) {
-			if(MPI_Send(&(A[N-1]), 1, MPI_DOUBLE, rank+1, 42, MPI_COMM_WORLD) != MPI_SUCCESS) {
+			if(MPI_Recv(&r_tr, 1, MPI_DOUBLE, rank+1, 42, MPI_COMM_WORLD, MPI_STATUS_IGNORE) != MPI_SUCCESS) {
+				fprintf(stderr, "MPI_Recv failed (right) at rank %d.\n", rank);
+			}
+			if(MPI_Ssend(&(A[N-1]), 1, MPI_DOUBLE, rank+1, 42, MPI_COMM_WORLD) != MPI_SUCCESS) {
 				fprintf(stderr, "MPI_Send failed (right) at rank %d.\n", rank);
 			}
+		}
+		if (rank != 0) {
 		}
 		// .. we propagate the temperature
 		for (long long i = 0; i < N; i++) {
 			// center stays constant (the heat is still on)
-			if (i == source_x && source_x > 0) {
+			if (i == source_x && source_x >= 0) {
 				B[i] = A[i];
 				continue;
 			}
@@ -200,18 +209,14 @@ int calculate_part(int size, int rank, int N_elements, int T) {
 			if (i != 0) {
 				tl = A[i-1];
 			} else if (i == 0 && rank != 0) {
-				if(MPI_Recv(&tl, 1, MPI_DOUBLE, rank-1, 42, MPI_COMM_WORLD, MPI_STATUS_IGNORE) != MPI_SUCCESS) {
-					fprintf(stderr, "MPI_Recv failed (left) at rank %d.\n", rank);
-				}
+				tl = r_tl;
 			} else {
 				tl = tc;
 			}
 			if (i != N-1) {
 				tr = A[i+1];
 			} else if (i == N-1 && rank != size-1) {
-				if(MPI_Recv(&tr, 1, MPI_DOUBLE, rank+1, 42, MPI_COMM_WORLD, MPI_STATUS_IGNORE) != MPI_SUCCESS) {
-					fprintf(stderr, "MPI_Recv failed (right) at rank %d.\n", rank);
-				}
+				tr = r_tr;
 			} else {
 				tr = tc;
 			}
