@@ -1,0 +1,11 @@
+Comment to the exercise 2:
+
+I observed a massive slowdown on larger problems - see the report for exercise 2.
+
+In the proseminar was mentioned, there is something wrong with the openmpi V.4.0.1 installation on the lcc2 grid.
+
+This in mind, I reran the tests with the openmpi/3.1.1 module loaded and observed a much faster program execution.
+
+To conclude that, the reasoning in the exercise is wrong, because the issues came primarily from the broken 
+installation of openmpi V4.
+
