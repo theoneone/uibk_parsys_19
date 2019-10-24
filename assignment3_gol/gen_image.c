@@ -99,15 +99,25 @@ static int write_tar_header(int fd, size_t frame_number, uint64_t size)
 	return 0;
 }
 
+static const struct {
+	uint8_t r, g, b;
+} colors[] = {
+	{ 0x00, 0x00, 0xFF },
+	{ 0x00, 0xFF, 0x00 },
+	{ 0xFF, 0xFF, 0x00 },
+	{ 0xFF, 0x00, 0x00 },
+	{ 0xFF, 0xFF, 0xFF },
+};
+
 void gen_image(int fd, size_t frame_number,
 	       value_t *data, size_t width, size_t height,
 	       value_t min, value_t max)
 {
+	size_t i, count, x, y;
+	value_t f, val, step;
 	char header[128];
 	uint8_t pixel[3];
 	uint64_t size;
-	size_t x, y;
-	value_t val;
 	void *temp;
 
 	sprintf(header, "P6\n%zu %zu\n255\n", width, height);
@@ -115,18 +125,39 @@ void gen_image(int fd, size_t frame_number,
 	write_tar_header(fd, frame_number, size);
 	write(fd, header, strlen(header));
 
+	count = sizeof(colors) / sizeof(colors[0]);
+	step = 1.0 / count;
+
 	for (y = 0; y < height; ++y) {
 		for (x = 0; x < width; ++x) {
 			val = *(data++);
 
-			if (val < min) {
+			if (val < min || val > max) {
 				pixel[0] = pixel[1] = pixel[2] = 0x00;
-			} else if (val > max) {
-				pixel[0] = pixel[1] = pixel[2] = 0xFF;
+				continue;
+			}
+
+			f = (val - min) / (max - min);
+
+			for (i = 0; i < (count - 1); ++i) {
+				if (f < (i + 1) * step)
+					break;
+			}
+
+			f = (f - i * step) / step;
+
+			if (i > 0) {
+				pixel[0] = colors[i - 1].r * (1.0 - f);
+				pixel[1] = colors[i - 1].g * (1.0 - f);
+				pixel[2] = colors[i - 1].b * (1.0 - f);
+
+				pixel[0] += colors[i].r * f;
+				pixel[1] += colors[i].g * f;
+				pixel[2] += colors[i].b * f;
 			} else {
-				pixel[0] = 255.0 * ((val - min) / (max - min));
-				pixel[1] = 0x00;
-				pixel[2] = 255.0 * ((max - val) / (max - min));
+				pixel[0] = colors[i].r;
+				pixel[1] = colors[i].g;
+				pixel[2] = colors[i].b;
 			}
 
 			write(fd, pixel, sizeof(pixel));
