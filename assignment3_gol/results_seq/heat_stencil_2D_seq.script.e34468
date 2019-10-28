@@ -1,0 +1,6 @@
+./heat_stencil_2D_seq.sh: line 3: syntax error near unexpected token `('
+./heat_stencil_2D_seq.sh: line 3: `./heat_stencil_2D_seq "$1" 1>./temp($1).tar'
+
+real	0m0.004s
+user	0m0.000s
+sys	0m0.003s

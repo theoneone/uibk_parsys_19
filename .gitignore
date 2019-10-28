@@ -28,3 +28,10 @@ proseminar/*/**/*
 **/*.settings
 **/*.cproject
 
+# ignore tarballs
+**/*.tar
+
+# ignore build artifacts
+**/*.o
+**/*.d
+
