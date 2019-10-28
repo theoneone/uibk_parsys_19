@@ -1,0 +1,11 @@
+tar: temp1.tar: Cannot open: No such file or directory
+tar: Error is not recoverable: exiting now
+convert: unable to open image `frame_*.ppm': No such file or directory @ error/blob.c/OpenBlob/2643.
+convert: no images defined `heat.gif' @ error/convert.c/ConvertImageCommand/3046.
+mv: cannot stat ‘heat.gif’: No such file or directory
+rm: cannot remove ‘temp1.tar’: No such file or directory
+mv: cannot stat ‘heat.gif’: No such file or directory
+
+real	16m2.192s
+user	14m7.519s
+sys	1m54.275s

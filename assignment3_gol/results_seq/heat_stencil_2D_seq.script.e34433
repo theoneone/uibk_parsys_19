@@ -1,0 +1,7 @@
+./heat_stencil_2D_seq.sh: line 4: ./tar2gif.sh: No such file or directory
+rm: cannot remove ‘frames’: No such file or directory
+mv: cannot stat ‘heat.gif’: No such file or directory
+
+real	15m49.113s
+user	14m3.112s
+sys	1m42.362s

@@ -1,0 +1,6 @@
+./heat_stencil_2D_seq.sh: line 4: ./tar2gif.sh: No such file or directory
+mv: cannot stat ‘heat.gif’: No such file or directory
+
+real	0m0.404s
+user	0m0.289s
+sys	0m0.100s
