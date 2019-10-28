@@ -58,6 +58,10 @@ int main(int argc, char **argv)
 		B = H;
 	}
 
+// added image for final result
+	gen_image(STDOUT_FILENO, frame_ID,
+		  A, N, N, 273, 273 + 60);
+
 	free(B);
 	free(A);
 	return EXIT_SUCCESS;
