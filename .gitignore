@@ -9,6 +9,13 @@ proseminar/*/**/*
 !proseminar/*/**/Makefile
 !proseminar/*/**/makefile
 
+# same for paths beginning with "assignment"
+assignment*/*/**/*
+!assignment*/*/**/
+!assignment*/*/**/*.*
+!assignment*/*/**/Makefile
+!assignment*/*/**/makefile
+
 
 # ignore lock files (office)
 **/.~*
