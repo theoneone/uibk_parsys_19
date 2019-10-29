@@ -28,8 +28,9 @@ proseminar/*/**/*
 **/*.settings
 **/*.cproject
 
-# ignore tarballs
+# ignore tarballs and extracted files
 **/*.tar
+**/frames/*.ppm
 
 # ignore build artifacts
 **/*.o
