@@ -45,6 +45,7 @@ int main(int argc, char **argv) {
 	if (rank == 0) {
 		fprintf(stderr, "Computing heat-distribution for room size N=%lu for T=%lu timesteps\n", N, T);
 	}
+	fprintf(stderr, "Starting computation on rank %d of %d\n", rank, size);
 	success = calculate_part(size, rank, M, N, T);
 
 	MPI_Finalize();
@@ -124,16 +125,18 @@ int calculate_part(size_t size, size_t rank, size_t M, size_t N_elements, size_t
 	IVector rcv_counts, rcv_displs;
 	rcv_counts = createIVector(size);
 	rcv_displs = createIVector(size);
-	int displ = 0;
+	size_t MM = M + 2;
+	int displ = MM;
 	for (size_t i = 0; i < size; ++i) {
-		rcv_counts[i] = N;
+		rcv_counts[i] = N * MM;
 		rcv_displs[i] = displ;
-		displ += N;
+		displ += N * MM;
 	}
 	fprintf(stderr, "rank: %lu, N = %lu, N_el = %lu, last=%lu\n", rank, N, N_elements, N_elements % N);//XXX
-	rcv_counts[size-1] = N_elements % N == 0 ? N : N_elements % N;
+	size_t NN = (N_elements % N == 0 ? N : N_elements % N);
+	rcv_counts[size-1] = NN * MM;
 	if (rank == size-1) {
-		N = rcv_counts[rank]; // last rank might be not entirely filled, remove unnecessary elements
+		N = NN; // last rank might be not entirely filled, remove unnecessary elements
 	}
 	fprintf(stderr, "cnt: ");//XXX 7 Zeilen
 	for(size_t i=0; i<size;++i) fprintf(stderr, "%d, ", rcv_counts[i]);
@@ -153,7 +156,7 @@ int calculate_part(size_t size, size_t rank, size_t M, size_t N_elements, size_t
 		A = createVector(M + 2, N + 2);
 		B = createVector(M + 2, N + 2);
 	}
-	size_t NN = N + 2;
+	NN = N + 2;
 
 	// set up initial conditions in A
 	for (size_t j = 1; j <= M; ++j) {
@@ -222,7 +225,7 @@ int calculate_part(size_t size, size_t rank, size_t M, size_t N_elements, size_t
 		// show intermediate step
 		// modification: keep number of lines to print stable
 		if (!(t % N)) {
-			if(MPI_Gatherv(A, NN*(M+2), MPI_DOUBLE, A, rcv_counts, rcv_displs, MPI_DOUBLE, 0, MPI_COMM_WORLD) != MPI_SUCCESS) {
+			if(MPI_Gatherv(A, N * MM, MPI_DOUBLE, A, rcv_counts, rcv_displs, MPI_DOUBLE, 0, MPI_COMM_WORLD) != MPI_SUCCESS) {
 				fprintf(stderr, "MPI_Gatherv failed at rank %lu.\n", rank);
 			}
 			if (rank == 0) {
@@ -234,7 +237,7 @@ int calculate_part(size_t size, size_t rank, size_t M, size_t N_elements, size_t
 	releaseVector(B);
 	// ---------- check ----------
 	int success = 1;
-	if(MPI_Gatherv(A, NN*(M+2), MPI_DOUBLE, A, rcv_counts, rcv_displs, MPI_DOUBLE, 0, MPI_COMM_WORLD) != MPI_SUCCESS) {
+	if(MPI_Gatherv(A, N * MM, MPI_DOUBLE, A, rcv_counts, rcv_displs, MPI_DOUBLE, 0, MPI_COMM_WORLD) != MPI_SUCCESS) {
 		fprintf(stderr, "MPI_Gatherv failed at rank %lu.\n", rank);
 	}
 	if (rank == 0) {
