@@ -93,12 +93,18 @@ void printTemperature(Vector m, int N) {
 		}
 		value_t temp = max_t;
 
-		// pick the 'color'
-		int c = ((temp - min) / (max - min)) * numColors;
-		c = (c >= numColors) ? numColors - 1 : ((c < 0) ? 0 : c);
+		if (temp < min) {
+			fprintf(stderr, "%c", '0');
+		} else if (temp > max) {
+			fprintf(stderr, "%c", 'T');
+		} else {
+			// pick the 'color'
+			int c = ((temp - min) / (max - min)) * numColors;
+			c = (c >= numColors) ? numColors - 1 : ((c < 0) ? 0 : c);
 
-		// print the average temperature
-		fprintf(stderr, "%c", colors[c]);
+			// print the average temperature
+			fprintf(stderr, "%c", colors[c]);
+		}
 	}
 	// right wall
 	fprintf(stderr, "X\n");
@@ -152,11 +158,12 @@ int calculate_part(size_t size, size_t rank, size_t M, size_t N_elements, size_t
 	if (rank == 0) {
 		A = createVector(M + 2, N_elements + 2);
 		B = createVector(M + 2, N_elements + 2);
+		NN = N_elements + 2;
 	} else {
 		A = createVector(M + 2, N + 2);
 		B = createVector(M + 2, N + 2);
+		NN = N + 2;
 	}
-	NN = N + 2;
 
 	// set up initial conditions in A
 	for (size_t j = 1; j <= M; ++j) {
@@ -174,10 +181,11 @@ int calculate_part(size_t size, size_t rank, size_t M, size_t N_elements, size_t
 	}
 	fprintf(stderr, "rank %lu, seed at %lu/%lu (find source array)\n", rank, source_x, source_y);//XXX
 	if (rank == 0) {
-		gen_image(STDOUT_FILENO, frame_ID++, A, M + 2, N_elements + 2, 273, 273 + 60);
-		printTemperature(A, (M+2)*(N_elements+2));
+		gen_image(STDOUT_FILENO, frame_ID++, &(A[NN]), M, NN, 273, 273 + 60);
+		printTemperature(&(A[NN]), M*NN);
 	}
 	// ---------- compute ----------
+	T = 1000;
 	// for each time step ..
 	for (size_t t = 0; t < T; t++) {
 		if (rank != 0) {
@@ -188,9 +196,9 @@ int calculate_part(size_t size, size_t rank, size_t M, size_t N_elements, size_t
 				fprintf(stderr, "MPI_Recv failed (left) at rank %lu.\n", rank);
 			}
 		} else {
-			for (size_t j = 0; j < NN; ++j) {
-				A[j] = A[NN+j];
-			}
+//			for (size_t j = 1; j <= M; ++j) {
+//				A[j] = A[MM+j];
+//			}
 		}
 		if (rank != size-1) {
 			if(MPI_Recv(&(A[(M+1)*(N+1)]), M, MPI_DOUBLE, rank+1, 42, MPI_COMM_WORLD, MPI_STATUS_IGNORE) != MPI_SUCCESS) {//r_tr
@@ -200,9 +208,15 @@ int calculate_part(size_t size, size_t rank, size_t M, size_t N_elements, size_t
 				fprintf(stderr, "MPI_Send failed (right) at rank %lu.\n", rank);
 			}
 		} else {
-			for (size_t j = 0; j < N; ++j) {
-				A[(M+1)*NN + j] = A[(M+1)*(NN-1) + j];
-			}
+//			for (size_t j = 0; j <= M; ++j) {
+//				A[(M+1)*NN + j] = A[(M+1)*(NN-1) + j];
+//			}
+		}
+		for (size_t i = 0; i < NN; ++i) {
+			A[i*MM] = A[i*MM+1];
+		}
+		for (size_t i = 0; i < NN; ++i) {
+			A[(i+1)*MM-1] = A[(i+1)*MM-2];
 		}
 
 		// .. we propagate the temperature
@@ -215,7 +229,7 @@ int calculate_part(size_t size, size_t rank, size_t M, size_t N_elements, size_t
 				}
 				// compute new temperature at current position
 				B[i + NN * j] = A[i + NN * j] +
-						0.2 * (A[i-1 + NN*j] + A[i+1 + NN*j] + A[i + (NN-1)*j] + A[i + (NN+1)*j] + (-4 * A[i + NN*j]));
+						0.2 * (A[i-1 + NN*j] + A[i+1 + NN*j] + A[i + (NN-1)*j] + A[i + (NN+1)*j] + (-4 * A[i + NN*j]));//FIXME
 			}
 		}
 		// swap matrices (just pointers, not content)
@@ -224,26 +238,31 @@ int calculate_part(size_t size, size_t rank, size_t M, size_t N_elements, size_t
 		B = H;
 		// show intermediate step
 		// modification: keep number of lines to print stable
-		if (!(t % N)) {
-			if(MPI_Gatherv(A, N * MM, MPI_DOUBLE, A, rcv_counts, rcv_displs, MPI_DOUBLE, 0, MPI_COMM_WORLD) != MPI_SUCCESS) {
-				fprintf(stderr, "MPI_Gatherv failed at rank %lu.\n", rank);
-			}
+		if (!(t % N) || t==0) { //FIXME rm t=0
+//			if(MPI_Gatherv(A, N * MM, MPI_DOUBLE, A, rcv_counts, rcv_displs, MPI_DOUBLE, 0, MPI_COMM_WORLD) != MPI_SUCCESS) {
+//				fprintf(stderr, "MPI_Gatherv failed at rank %lu.\n", rank);
+//			}
 			if (rank == 0) {
-				gen_image(STDOUT_FILENO, frame_ID++, A, M + 2, N_elements + 2, 273, 273 + 60);
-				printTemperature(A, (M+2)*(N_elements+2));
+				gen_image(STDOUT_FILENO, frame_ID++, &(A[NN]), M, NN, 273, 273 + 60);
+//				printTemperature(A, NN);//XXX
+				for (size_t i = 0; i < MM; ++i) {//FIXME without first and last line
+					printTemperature(&(A[NN*i]), NN);
+				}
+//				printTemperature(&(A[(M+1)*NN]), NN);//XXX
+				fprintf(stderr, "\n");
 			}
 		}
 	}
 	releaseVector(B);
 	// ---------- check ----------
 	int success = 1;
-	if(MPI_Gatherv(A, N * MM, MPI_DOUBLE, A, rcv_counts, rcv_displs, MPI_DOUBLE, 0, MPI_COMM_WORLD) != MPI_SUCCESS) {
-		fprintf(stderr, "MPI_Gatherv failed at rank %lu.\n", rank);
-	}
+//	if(MPI_Gatherv(A, N * MM, MPI_DOUBLE, A, rcv_counts, rcv_displs, MPI_DOUBLE, 0, MPI_COMM_WORLD) != MPI_SUCCESS) {
+//		fprintf(stderr, "MPI_Gatherv failed at rank %lu.\n", rank);
+//	}
 	if (rank == 0) {
-		gen_image(STDOUT_FILENO, frame_ID++, A, M + 2, N_elements + 2, 273, 273 + 60);
-		printTemperature(A, (M+2)*(N_elements+2));
-		for (size_t i = 0; i <= (M+2)*(N_elements+1); ++i) {
+		gen_image(STDOUT_FILENO, frame_ID++, &(A[NN]), M, NN, 273, 273 + 60);
+		printTemperature(&(A[NN]), M*NN);
+		for (size_t i = 0; i <= MM*(N_elements+1); ++i) {
 			value_t temp = A[i];
 			if (273 <= temp && temp <= 273 + 60)
 				continue;
@@ -253,7 +272,7 @@ int calculate_part(size_t size, size_t rank, size_t M, size_t N_elements, size_t
 		}
 	fprintf(stderr, "Verification: %s\n", (success) ? "OK" : "FAILED");
 	value_t cs, min_el, max_el;
-	cs = sumVector(A, (M+2)*(N_elements+2), &min_el, &max_el);
+	cs = sumVector(A, MM*NN, &min_el, &max_el);
 	fprintf(stderr, "Checksum: %f, (min = %f°C, max = %f°C)\n", cs, min_el-273, max_el-273);
 	}
 	// ---------- cleanup ----------
