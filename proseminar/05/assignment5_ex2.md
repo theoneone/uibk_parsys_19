@@ -29,4 +29,14 @@ done
 
 The simulation calculates gravity forces. So, the superposition principle for Newtonian forces _**f** = **f1** + **f2** + ... + **fn**_ applies, where **f** and **f_** are vectors. These forces can be computed step-wise and in random order as follows:
 
+![equation 1](./equations/equation1.png)
+
+![equation 2](./equations/equation2.png)
+
+![equation 3](./equations/equation3.png)
+
+![equation 4](./equations/equation4.png)
+
+![equation 5](./equations/equation5.png)
+bla
 

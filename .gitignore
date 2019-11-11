@@ -43,3 +43,8 @@ assignment*/*/**/*
 **/*.o
 **/*.d
 
+# ignore latex intermediate files
+**/*.aux
+**/*.log
+**/*.synctex.gz
+
