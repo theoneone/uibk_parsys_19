@@ -29,14 +29,41 @@ done
 
 The simulation calculates gravity forces. So, the superposition principle for Newtonian forces _**f** = **f1** + **f2** + ... + **fn**_ applies, where **f** and **f_** are vectors. These forces can be computed step-wise and in random order as follows:
 
-![equation 1](./equations/equation1.png)
+![equation 1: F_i](./equations/equation_F_i.png)
 
-![equation 2](./equations/equation2.png)
+__Equation 1:__ force on particle _i_ at position _x_i_
 
-![equation 3](./equations/equation3.png)
+![equation 2: a_i(F)](./equations/equation_a_i_f.png)
 
-![equation 4](./equations/equation4.png)
+__Equation 2:__ acceleration _a_i_ of particle _i_ depending on force _F_i_
 
-![equation 5](./equations/equation5.png)
-bla
+Equation 2 inserted in equation 1 gives:
 
+![equation 3: a_i(x)](./equations/equation_a_i_x.png)
+
+__Equation 3:__ acceleration _a_i_ of particle _i_
+
+The superposition theorem states: multiple particles _x_i_ with mass _m_i_ act like one particle with summated mass at its mass point
+
+![equation 4: m_s](./equations/equation_m_s.png)
+
+__Equation 4:__ mass _m_s_ of superposition of all particles effective at _x_s_
+
+![equation 5: x_s](./equations/equation_x_s.png)
+
+__Equation 5:__ coordinates of mass center _x_s_
+
+
+Now the equations 4 and 5 can be inserted into equation 3. Since only two masses remain, the equation can be written as:
+
+![equation 6: a_i(x)](./equations/equation_a_i_combined.png)
+
+__Equation 6:__ acceleration _a_i_ of particle _i_ as expression of a macroscopic body with its mass point at _x_s_ attracting _x_i_, where _m_s(m_j)_ is the mass at the center of gravity _x_s(x_j)_ of all points except _x_i_.
+
+Afterwards the equation can be rewritten to:
+
+![equation 7: a_i(x)](./equations/equation_a_i_rewritten.png)
+
+__Equation 7:__ acceleration in terms of mass and point of gravity of all particles
+
+which gives a blueprint for a parallelizable algorithm. The order in which the particles are processed does not matter, so it is possible to set up a binary tree with growing cells where each cell may be applied to an mpi rank.
