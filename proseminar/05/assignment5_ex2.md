@@ -66,4 +66,47 @@ Afterwards the equation can be rewritten to:
 
 __Equation 7:__ acceleration in terms of mass and point of gravity of all particles
 
-which gives a blueprint for a parallelizable algorithm. The order in which the particles are processed does not matter, so it is possible to set up a binary tree with growing cells where each cell may be applied to an mpi rank.
+which gives a blueprint for a parallelizable algorithm. The order in which the particles are processed does not matter, so it is not necessary to sort them into a cartesian grid.
+
+
+## Algorithm:
+The idea behind the algorithm is, to split the domain into several ranks, where each rank processes the acceleration and new position for all particles within their subdomain. Afterwards all ranks distribute the mass and center of gravity of the whole subdomain. Each particle in a subdomain is accelerated accordung to the masses of all other ranks.
+
+```
+particle: (x, v, m) with x = (x_x, x_y), v = (v_x, v_y)
+n particles
+r ranks
+k = n/m praticles per rank
+G gravity constant
+dt timestep
+
+m = 0
+x_weighted = (0, 0)
+
+for (p in particles of rank)
+do
+    m += p.m
+    x_weighted += p.m * p.x
+done
+
+send x_weighted and m to all ranks
+receive {x[1], ..., x[n]} and {m[1], ..., m[n]} from other ranks (where x[i] = x_weighted and m[i] = m for the i-th rank)
+
+x_w_tot = 0
+m_tot = 0
+for (i = 1 to r)
+do
+    x_w_tot += x[i]
+    m_tot += m[i]
+done
+--> for many ranks, a tree structure to collect and sum up x and m may have an advantage, distribute then x_w_tot and m_tot to all ranks
+
+for (p in particles of rank)
+do
+    m_red = (m_tot - p.m)
+    temp = (x_w_tot - p.x*p.m)/m_red - p.x
+    a = G * m_red * temp / ||temp||^3
+    p.v += a * dt
+    p.x += p.v * dt
+done
+```

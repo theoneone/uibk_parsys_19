@@ -6,6 +6,7 @@
 # IN_DIR: the directory, which contains tex files to convert
 #
 # depends on package latex2rtf (on ubuntu use command 'sudo apt install latex2rtf')
+# you may need to install the package texlive-latex-extra
 
 IN_DIR=./$1
 if [ -e $IN_DIR ]
