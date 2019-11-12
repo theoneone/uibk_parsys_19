@@ -1,6 +1,6 @@
-#Assignment 5
+# Assignment 5
 
-##Exercise 2
+## Exercise 2
 
 ### Description
 
@@ -69,7 +69,7 @@ __Equation 7:__ acceleration in terms of mass and point of gravity of all partic
 which gives a blueprint for a parallelizable algorithm. The order in which the particles are processed does not matter, so it is not necessary to sort them into a cartesian grid.
 
 
-## Algorithm:
+### Algorithm:
 The idea behind the algorithm is, to split the domain into several ranks, where each rank processes the acceleration and new position for all particles within their subdomain. Afterwards all ranks distribute the mass and center of gravity of the whole subdomain. Each particle in a subdomain is accelerated accordung to the masses of all other ranks.
 
 ```
@@ -90,7 +90,8 @@ do
 done
 
 send x_weighted and m to all ranks
-receive {x[1], ..., x[n]} and {m[1], ..., m[n]} from other ranks (where x[i] = x_weighted and m[i] = m for the i-th rank)
+receive {x[1], ..., x[n]} and {m[1], ..., m[n]} from other ranks
+        (where x[i] = x_weighted and m[i] = m for the i-th rank)
 
 x_w_tot = 0
 m_tot = 0
@@ -99,7 +100,8 @@ do
     x_w_tot += x[i]
     m_tot += m[i]
 done
---> for many ranks, a tree structure to collect and sum up x and m may have an advantage, distribute then x_w_tot and m_tot to all ranks
+--> for many ranks, a tree structure to collect and sum up x and m may have an advantage,
+    distribute then x_w_tot and m_tot to all ranks
 
 for (p in particles of rank)
 do
