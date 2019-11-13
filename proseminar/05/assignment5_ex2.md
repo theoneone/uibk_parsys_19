@@ -112,3 +112,8 @@ do
     p.x += p.v * dt
 done
 ```
+
+#### Addendum:
+Well, this algorithm is quite messed up, cause it is based on the wrong assumtion, that the system behaves like a two particle system with all but one particles represented by their center of gravity, which does not hold.
+The center of mass can be exploited for clusters of particles with some distance to a particle. So, an implementation which sorts particles to clusters and clusters to super-clusters in a tree would be possible. A quad-tree over a euclidian grid or some kind of graph would be possible implementations.
+
