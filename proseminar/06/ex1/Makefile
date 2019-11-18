@@ -1,15 +1,20 @@
+CC := gcc
 CFLAGS := -std=c99 -pedantic -D_DEFAULT_SOURCE -Wall -Wextra
-LDFLAGS := -lm -lz
+LOADLIBES := -lm -lz
 
 .PHONY: all
-all: particle bin2png
+all: particle_barnes_hut bin2png
 
-particle: particle.o
-particle.o: particle.c particle.h
+particle_barnes_hut: particle_barnes_hut.o
+particle_barnes_hut.o: particle_barnes_hut.c particle.h
 
 bin2png: bin2png.o
 bin2png.o: bin2png.c particle.h
 
 .PHONY: clean
 clean:
-	$(RM) particle bin2png *.o
+	$(RM) particle_barnes_hut bin2png *.o
+
+.PHONY: rmdata
+rmdata:
+	$(RM) *.bin *.png *.gif
