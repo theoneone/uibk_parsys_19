@@ -1,5 +1,5 @@
 CFLAGS := -std=c99 -pedantic -D_DEFAULT_SOURCE -Wall -Wextra
-LDFLAGS := -lm -lz
+LOADLIBES := -lm -lz
 
 .PHONY: all
 all: particle bin2png
