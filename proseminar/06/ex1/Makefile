@@ -1,6 +1,6 @@
 CC := gcc
 CFLAGS := -std=c99 -pedantic -D_DEFAULT_SOURCE -Wall -Wextra
-LOADLIBES := -lm -lz
+LDLIBS := -lm -lz
 
 .PHONY: all
 all: particle_barnes_hut bin2png
