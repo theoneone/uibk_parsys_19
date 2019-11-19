@@ -7,20 +7,14 @@
 
 #include "particle.h"
 
-/****************************** tree structure *******************************/
+/********************************* typedefs **********************************/
 
-typedef struct quadtree {
-	particle_t* particle;
-	double mass;
-	double com_x; // center of mass
-	double com_y;
-
-	struct quadtree *parent;
-	struct quadtree *north;
-	struct quadtree *south;
-	struct quadtree *east;
-	struct quadtree *west;
-} *quadtree_t;
+typedef struct {
+	double x_min;
+	double x_max;
+	double y_min;
+	double y_max;
+} area_t;
 
 /****************************** simulation data ******************************/
 
@@ -34,8 +28,9 @@ static double dt = 1.0;
 static size_t count = 1000;
 static size_t steps = 1000;
 static double G = 1.0;//6.67430e-11;
-
+static area_t global_area = {-500, 500, -500, 500};
 static particle_t *particles = NULL;
+static particle_t *tree = NULL;
 
 /************************** command line processing **************************/
 
@@ -110,9 +105,13 @@ static void process_options(int argc, char **argv)
 		switch (i) {
 		case 'x':
 			width = strtod(optarg, &end);
+			global_area.x_max = width/2;
+			global_area.x_min = -global_area.x_max;
 			break;
 		case 'y':
 			height = strtod(optarg, &end);
+			global_area.y_max = height/2;
+			global_area.y_min = -global_area.y_max;
 			break;
 		case 'c':
 			count = strtol(optarg, &end, 10);
@@ -232,6 +231,82 @@ static int export_data(size_t step_index)
 	return 0;
 }
 
+static particle_t** quadrant(particle_t *tree, const particle_t *newLeaf, area_t *area)
+{
+	double x_border = area->x_min + (area->x_max - area->x_min) / 2;
+	double y_border = area->y_min + (area->y_max - area->y_min) / 2;
+	if (newLeaf->x > x_border) {
+		if (newLeaf->y > area->y_min + (area->y_max - area->y_min) / 2) {
+			area->x_min = x_border;
+			area->y_min = y_border;
+			return &(tree->south);
+		} else {
+			area->x_min = x_border;
+			area->y_max = y_border;
+			return &(tree->west);
+		}
+	} else {
+		if (newLeaf->y > y_border) {
+			area->x_max = x_border;
+			area->y_min = y_border;
+			return &(tree->east);
+		} else {
+			area->x_max = x_border;
+			area->y_max = y_border;
+			return &(tree->north);
+		}
+	}
+}
+
+void updateValues(particle_t *current, const particle_t *newLeaf)
+{
+	current->x = current->mass * current->x + newLeaf->mass * newLeaf->x;
+	current->y = current->mass * current->y + newLeaf->mass * newLeaf->y;
+	current->mass += newLeaf->mass;
+	current->x /= current->mass;
+	current->y /= current->mass;
+}
+
+int is_leaf(particle_t *tree)
+{
+	return (tree->north == NULL && tree->west == NULL && tree->east == NULL && tree->south == NULL);
+}
+
+particle_t *new_node() {
+	return calloc(1, sizeof(particle_t));
+}
+
+void cleanup_nodes() {
+	// FIXME implement
+}
+
+static int insertNode(particle_t *tree, particle_t *newLeaf, area_t *area) // FIXME invalid for root node = NULL
+{
+	particle_t* current;
+	particle_t** p_current = &tree;
+	do {
+		current = *p_current;
+		updateValues(current, newLeaf);
+		p_current = quadrant(current, newLeaf, area);
+	} while (*p_current != NULL && !is_leaf(*p_current));
+	if(*p_current == NULL) {
+		newLeaf->parent = current;
+		*p_current = newLeaf;
+	} else {
+		particle_t* temp = *p_current;
+		*p_current = new_node();
+		(*p_current)->parent = current;
+		current = *p_current;
+		temp->parent = current;
+		updateValues(current, temp);
+		p_current = quadrant(current, temp, area);
+		*p_current = temp;
+		insertNode(current, newLeaf, area);
+	}
+	return 0; // success // TODO error handling
+}
+
+
 static void sim_do_step(void)//FIXME
 {
 	double m1, m2, f_mag, r, r2, d_x, d_y, f_x, f_y;
@@ -281,11 +356,20 @@ int main(int argc, char **argv)
 {
 	int status = EXIT_FAILURE;
 	size_t i;
+	area_t area;
 
 	process_options(argc, argv);
 
 	if (create_particles())
 		return EXIT_FAILURE;
+
+	for (i = 0; i < count; ++ i) {
+		area.x_min = global_area.x_min;
+		area.x_max = global_area.x_max;
+		area.y_min = global_area.y_min;
+		area.y_max = global_area.y_max;
+		insertNode(tree, &particles[i], &area);
+	}
 
 	for (i = 0; i < steps; ++i) {
 		if (export_data(i))
@@ -298,6 +382,7 @@ int main(int argc, char **argv)
 
 	status = EXIT_SUCCESS;
 out:
+	cleanup_nodes();
 	cleanup_particles();
 	return status;
 }
