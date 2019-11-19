@@ -363,6 +363,7 @@ int main(int argc, char **argv)
 	if (create_particles())
 		return EXIT_FAILURE;
 
+	tree = new_node();
 	for (i = 0; i < count; ++ i) {
 		area.x_min = global_area.x_min;
 		area.x_max = global_area.x_max;
