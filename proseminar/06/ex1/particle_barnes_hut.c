@@ -325,29 +325,42 @@ static int insertNode(particle_t *tree, particle_t *newLeaf, area_t *area) // FI
 	return 0; // success // TODO error handling
 }
 
-static particle_t* conditional_next(particle_t *node, particle_t *origin, int *level) {
+
+static particle_t** cond_next(particle_t **node, particle_t *current, int *level, int *last_to_parent) {
 	double s, d;
 	s = fmax(width, height) / *level;
-	d = fabs(fmax(origin->x - node->x, origin->y - node->y)); // inf norm
-	if(!(node == origin) && ((is_leaf(node) || (d != 0 && d/s < threshold)))) {
-		return node;
-	} else if (node == origin && is_leaf(node)) {
-		if (has flat neighbor) {
-			return conditional_next(flat_neighbor(node), origin, level);
-		} else {
-			--(*level);
-			return conditional_next(node->parent, origin, level);
-		}
-	} else {
+	d = fabs(fmax(current->x - (*node)->x, current->y - (*node)->y)); // infinity norm
+	if((is_leaf(*node) || last_to_parent) && node == &((*node)->parent->west)) {
+		--(*level);
+		*last_to_parent = 1;
+		return &((*node)->parent);
+	} else if (!is_leaf(*node) && !last_to_parent && (d == 0 || s/d >= threshold)) {
 		++(*level);
-		return conditional_next(node->leftmost_child, origin, level);
+		*last_to_parent = 0;
+		return &((*node)->north);
+	} else {
+		*last_to_parent = 0;
+		return node + sizeof(particle_t*);
 	}
+}
+
+static particle_t** traverse(particle_t **node, particle_t *current, int *level, int *last_to_parent) {
+	double s, d;
+	s = fmax(width, height) / *level;
+	d = fabs(fmax(current->x - (*node)->x, current->y - (*node)->y)); // infinity norm
+	particle_t **ret = NULL;
+	while ((*node == NULL || (*node)->parent != NULL) && (d != 0 && s/d < threshold)) {
+		ret = cond_next(node, current, level, last_to_parent);
+	}
+	return ret;
 }
 
 static void sim_do_step(void)//FIXME
 {
 	double m1, m2, f_mag, r, r2, d_x, d_y, f_x, f_y;
-	size_t i, j;
+	size_t i;
+	particle_t ** node;
+	int level, last2parent;
 
 	/* advance position from CURRENT velocity */
 	for (i = 0; i < count; ++i) {
@@ -361,16 +374,17 @@ static void sim_do_step(void)//FIXME
 		f_y = 0.0;
 
 		/* accumulate all the forces */
-		for (j = 0; j < count; ++j) {
-			if (j == i)
-				continue;
+		node = &tree;
+		level = 1;
+		last2parent = 0;
+		while((node = traverse(node, &(particles[i]), &level, &last2parent)) != NULL) {
 
 			m1 = particles[i].mass;
-			m2 = particles[j].mass;
+			m2 = (*node)->mass;
 
 			/* vector TOWARDS the other particle */
-			d_x = particles[j].x - particles[i].x;
-			d_y = particles[j].y - particles[i].y;
+			d_x = (*node)->x - particles[i].x;
+			d_y = (*node)->y - particles[i].y;
 
 			/* distance and squared distance */
 			r2 = d_x * d_x + d_y * d_y;
