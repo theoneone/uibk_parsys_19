@@ -25,6 +25,7 @@ static double max_mass = 100.0;
 static double vmin = 0.0;
 static double vmax = 10.0;
 static double dt = 1.0;
+static double threshold = 0.5;
 static size_t count = 1000;
 static size_t steps = 1000;
 static double G = 1.0;//6.67430e-11;
@@ -44,11 +45,12 @@ static struct option long_opts[] = {
 	{ "time", required_argument, NULL, 't' },
 	{ "min-speed", required_argument, NULL, 'u' },
 	{ "max-speed", required_argument, NULL, 'U' },
+	{ "threshold", required_argument, NULL, 'T' },
 	{ "help", no_argument, NULL, 'h' },
 	{ "version", no_argument, NULL, 'V' },
 };
 
-static const char *short_opts = "x:y:c:m:M:s:t:u:U:hV";
+static const char *short_opts = "x:y:c:m:M:s:t:u:U:T:hV";
 
 static const char *usagestr =
 "Usage: particle_barnes_hut [OPTIONS...]\n"
@@ -74,6 +76,8 @@ static const char *usagestr =
 "                               particle velocity.\n"
 "  --max-speed, -U <number>     Upper threshold for randomized\n"
 "                               particle velocity.\n"
+"  --threshold, -T <number>     Threshold for clustering of particles,\n"
+"                               default is 0.5, must be in range 0.0 .. 1.0.\n"
 "\n"
 "  --help, -h                   Display this help text and exit.\n"
 "  --version, -V                Display version information and exit.\n"
@@ -134,6 +138,9 @@ static void process_options(int argc, char **argv)
 		case 'U':
 			vmax = strtod(optarg, &end);
 			break;
+		case 'T':
+			threshold = strtod(optarg, &end);
+			break;
 		case 'h':
 			fputs(usagestr, stdout);
 			exit(EXIT_SUCCESS);
@@ -159,7 +166,19 @@ static void process_options(int argc, char **argv)
 	}
 
 	if (min_mass >= max_mass) {
-		fputs("Minimum mass needs to less than maximum mass!\n",
+		fputs("Minimum mass needs to be less than maximum mass!\n",
+		      stderr);
+		goto fail_arg;
+	}
+
+	if (vmin >= vmax) {
+		fputs("Minimum speed needs to be less than maximum speed!\n",
+		      stderr);
+		goto fail_arg;
+	}
+
+	if (threshold < 0.0 || threshold > 1.0) {
+		fputs("Threshold must be in range 0.0 .. 1.0!\n",
 		      stderr);
 		goto fail_arg;
 	}
@@ -306,6 +325,24 @@ static int insertNode(particle_t *tree, particle_t *newLeaf, area_t *area) // FI
 	return 0; // success // TODO error handling
 }
 
+static particle_t* conditional_next(particle_t *node, particle_t *origin, int *level) {
+	double s, d;
+	s = fmax(width, height) / *level;
+	d = fabs(fmax(origin->x - node->x, origin->y - node->y)); // inf norm
+	if(!(node == origin) && ((is_leaf(node) || (d != 0 && d/s < threshold)))) {
+		return node;
+	} else if (node == origin && is_leaf(node)) {
+		if (has flat neighbor) {
+			return conditional_next(flat_neighbor(node), origin, level);
+		} else {
+			--(*level);
+			return conditional_next(node->parent, origin, level);
+		}
+	} else {
+		++(*level);
+		return conditional_next(node->leftmost_child, origin, level);
+	}
+}
 
 static void sim_do_step(void)//FIXME
 {
