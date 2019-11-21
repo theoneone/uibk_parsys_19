@@ -171,8 +171,8 @@ static void process_options(int argc, char **argv)
 		goto fail_arg;
 	}
 
-	if (vmin >= vmax) {
-		fputs("Minimum speed needs to be less than maximum speed!\n",
+	if (vmin > vmax) {
+		fputs("Minimum speed needs to be less or equal than maximum speed!\n",
 		      stderr);
 		goto fail_arg;
 	}
