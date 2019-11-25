@@ -207,12 +207,14 @@ static void sim_do_step(void)
 	size_t i, j;
 
 	/* advance position from CURRENT velocity */
+#pragma omp parallel for
 	for (i = 0; i < count; ++i) {
 		particles[i].x += particles[i].v_x * dt;
 		particles[i].y += particles[i].v_y * dt;
 	}
 
 	/* compute velocity at the NEXT time step */
+#pragma omp parallel for
 	for (i = 0; i < count; ++i) {
 		f_x = 0.0;
 		f_y = 0.0;
