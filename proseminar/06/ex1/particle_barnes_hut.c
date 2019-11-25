@@ -212,7 +212,7 @@ static int create_particles(void)
 		return -1;
 	}
 
-	srand(time(NULL));
+	srand(0);//srand(time(NULL));//FIXME rm fixed seed
 
 	for (i = 0; i < count; ++i) {
 		particles[i].x = gen_number(-0.5 * width, 0.5 * width);
@@ -255,7 +255,7 @@ static particle_t** quadrant(particle_t *tree, const particle_t *newLeaf, area_t
 	double x_border = area->x_min + (area->x_max - area->x_min) / 2;
 	double y_border = area->y_min + (area->y_max - area->y_min) / 2;
 	if (newLeaf->x > x_border) {
-		if (newLeaf->y > area->y_min + (area->y_max - area->y_min) / 2) {
+		if (newLeaf->y > y_border) {
 			area->x_min = x_border;
 			area->y_min = y_border;
 			return &(tree->south);
@@ -326,21 +326,34 @@ static int insertNode(particle_t *tree, particle_t *newLeaf, area_t *area) // FI
 }
 
 
-static particle_t** cond_next(particle_t **node, particle_t *current, int *level, int *last_to_parent) {
+static particle_t** conditional_next(particle_t **node, particle_t *current, int *level, int *last_to_parent) {
 	double s, d;
 	s = fmax(width, height) / *level;
 	d = fabs(fmax(current->x - (*node)->x, current->y - (*node)->y)); // infinity norm
-	if((is_leaf(*node) || last_to_parent) && node == &((*node)->parent->west)) {
+	printf("isLeaf: %d, last2parent: %d, s/d = %.3f, thr = %.3f\n", is_leaf(*node), *last_to_parent, s/d, threshold);
+	printf("blaaaqa = %d, %d, %d\n", !is_leaf(*node), !last_to_parent , (d == 0 || s/d >= threshold));
+	if((is_leaf(*node) || *last_to_parent) && node == &((*node)->parent->west)) {
 		--(*level);
 		*last_to_parent = 1;
+		printf("      --> up (%d)\n", *level);
 		return &((*node)->parent);
-	} else if (!is_leaf(*node) && !last_to_parent && (d == 0 || s/d >= threshold)) {
+	} else if (!is_leaf(*node) && !(*last_to_parent) && (d == 0 || s/d >= threshold)) {
 		++(*level);
 		*last_to_parent = 0;
+		printf("      --> down (%d)\n", *level);
 		return &((*node)->north);
 	} else {
 		*last_to_parent = 0;
-		return node + sizeof(particle_t*);
+		if((*node) == (*node)->parent->north) {
+		printf("      --> to east (%d), parent = %p\n", *level, (*node)->parent);
+			return &((*node)->parent->east);
+		} else if((*node) == (*node)->parent->east) {
+			printf("      --> to south (%d), parent = %p\n", *level, (*node)->parent);
+			return &((*node)->parent->south);
+		} else {
+			printf("      --> to west (%d), parent = %p\n", *level, (*node)->parent);
+			return &((*node)->parent->west);
+		}
 	}
 }
 
@@ -349,9 +362,11 @@ static particle_t** traverse(particle_t **node, particle_t *current, int *level,
 	s = fmax(width, height) / *level;
 	d = fabs(fmax(current->x - (*node)->x, current->y - (*node)->y)); // infinity norm
 	particle_t **ret = NULL;
-	while ((*node == NULL || (*node)->parent != NULL) && (d != 0 && s/d < threshold)) {
-		ret = cond_next(node, current, level, last_to_parent);
-	}
+	printf("node = %p\n", *node);
+//	while ((*node == NULL || (*node)->parent != NULL)) {//&& (d != 0 && s/d < threshold)) {
+		printf("    parent = %p\n", (*node)->parent);
+		ret = conditional_next(node, current, level, last_to_parent);
+//	}
 	return ret;
 }
 
@@ -378,7 +393,8 @@ static void sim_do_step(void)//FIXME
 		level = 1;
 		last2parent = 0;
 		while((node = traverse(node, &(particles[i]), &level, &last2parent)) != NULL) {
-
+			printf("traverse: %p\n", node);
+			printf("traverse: parent = %p\n", (*node)->parent);
 			m1 = particles[i].mass;
 			m2 = (*node)->mass;
 
@@ -423,6 +439,29 @@ int main(int argc, char **argv)
 		insertNode(tree, &particles[i], &area);
 	}
 
+	printf("root = %p\n", tree);
+	particle_t* parent;
+	for(i = 0; i < count; ++i) {//XXX
+		printf("particle %d: (%.4f/%.4f), %p, ", i, particles[i].x, particles[i].y, &particles[i]);
+		parent = particles[i].parent;
+		if(parent == NULL) printf ("is root (%p)\n", parent);
+		if(&particles[i] == parent->east) printf("east (%p)\n", parent);
+		else if(&particles[i] == parent->west) printf("west (%p)\n", parent);
+		else if(&particles[i] == parent->south) printf("south (%p)\n", parent);
+		else if(&particles[i] == parent->north) printf("north (%p)\n", parent);
+		else printf("error\n");
+		while (parent != NULL) {
+			printf("   > %p, ", parent);
+			if(parent->parent == NULL) printf ("is root (%p)\n", parent->parent);
+			else if(parent == parent->parent->east) printf("east (%p)\n", parent->parent);
+			else if(parent == parent->parent->west) printf("west (%p)\n", parent->parent);
+			else if(parent == parent->parent->south) printf("south (%p)\n", parent->parent);
+			else if(parent == parent->parent->north) printf("north (%p)\n", parent->parent);
+			else printf("error\n");
+			parent = parent->parent;
+		}
+	}
+	printf("tree end\n");
 	for (i = 0; i < steps; ++i) {
 		if (export_data(i))
 			goto out;
