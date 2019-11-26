@@ -313,12 +313,17 @@ static int insertNode(particle_t *tree, particle_t *newLeaf, area_t *area) // FI
 		*p_current = newLeaf;
 	} else {
 		particle_t* temp = *p_current;
+		area_t tmp_area;
+		tmp_area.x_min = area->x_min;
+		tmp_area.x_max = area->x_max;
+		tmp_area.y_min = area->y_min;
+		tmp_area.y_max = area->y_max;
 		*p_current = new_node();
 		(*p_current)->parent = current;
 		current = *p_current;
 		temp->parent = current;
 		updateValues(current, temp);
-		p_current = quadrant(current, temp, area);
+		p_current = quadrant(current, temp, &tmp_area);
 		*p_current = temp;
 		insertNode(current, newLeaf, area);
 	}
@@ -451,7 +456,7 @@ int main(int argc, char **argv)
 		else if(&particles[i] == parent->north) printf("north (%p)\n", parent);
 		else printf("error\n");
 		while (parent != NULL) {
-			printf("   > %p, ", parent);
+			printf("   > node: (%.4f, %.4f), %p, ", parent->x, parent->y, parent);
 			if(parent->parent == NULL) printf ("is root (%p)\n", parent->parent);
 			else if(parent == parent->parent->east) printf("east (%p)\n", parent->parent);
 			else if(parent == parent->parent->west) printf("west (%p)\n", parent->parent);
