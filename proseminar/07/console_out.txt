@@ -1,0 +1,720 @@
+c8451238@pc033-c813:~$ cd git/uibk_parsys_19/assignment4_gol/
+c8451238@pc033-c813:~/git/uibk_parsys_19/assignment4_gol$ ls
+bin2png.c  Makefile  particle.c  particle.h  README.md
+c8451238@pc033-c813:~/git/uibk_parsys_19/assignment4_gol$ make
+cc -std=c99 -pedantic -D_DEFAULT_SOURCE -Wall -Wextra -fopenmp   -c -o particle.o particle.c
+cc   particle.o -lm -lz -lgomp  -o particle
+cc -std=c99 -pedantic -D_DEFAULT_SOURCE -Wall -Wextra -fopenmp   -c -o bin2png.o bin2png.c
+cc   bin2png.o -lm -lz -lgomp  -o bin2png
+c8451238@pc033-c813:~/git/uibk_parsys_19/assignment4_gol$ time ./particle 
+
+real	0m21.168s
+user	4m13.500s
+sys	0m0.108s
+c8451238@pc033-c813:~/git/uibk_parsys_19/assignment4_gol$ time ./particle 
+
+real	0m32.066s
+user	6m24.248s
+sys	0m0.152s
+c8451238@pc033-c813:~/git/uibk_parsys_19/assignment4_gol$ man time
+c8451238@pc033-c813:~/git/uibk_parsys_19/assignment4_gol$ time -v ./particle 
+-v: command not found
+
+real	0m0.385s
+user	0m0.051s
+sys	0m0.282s
+c8451238@pc033-c813:~/git/uibk_parsys_19/assignment4_gol$ man time
+c8451238@pc033-c813:~/git/uibk_parsys_19/assignment4_gol$ time --verbose ./particle 
+--verbose: command not found
+
+real	0m0.071s
+user	0m0.035s
+sys	0m0.030s
+c8451238@pc033-c813:~/git/uibk_parsys_19/assignment4_gol$ man time
+c8451238@pc033-c813:~/git/uibk_parsys_19/assignment4_gol$ /usr/bin/time --verbose ./particle 
+	Command being timed: "./particle"
+	User time (seconds): 398.10
+	System time (seconds): 0.19
+	Percent of CPU this job got: 1184%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:33.61
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 2624
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 135
+	Voluntary context switches: 154
+	Involuntary context switches: 117309
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 96096
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+c8451238@pc033-c813:~/git/uibk_parsys_19/assignment4_gol$ ./particle -h
+Usage: particle [OPTIONS...]
+
+Runs a simple 2D particle simulation.
+
+WARNING: This craps a lot of data into the current working directory!
+
+Possible options:
+
+  --field-width, -x <number>   The width of the field in which to spawn
+                               particles.
+  --field-height, -y <number>  The height of the field in which to spawn
+                               particles.
+  --count, -c <number>         How many particles to spawn.
+  --min-mass, -m <number>      Lower threshold for randomized
+                               particle mass.
+  --max-mass, -M <number>      Uppser threshold for randomized
+                               particle mass.
+  --steps, -s <number>         How many simulation steps to compute.
+  --time, -t <number>          Time difference for each step.
+
+  --help, -h                   Display this help text and exit.
+  --version, -V                Display version information and exit.
+
+c8451238@pc033-c813:~/git/uibk_parsys_19/assignment4_gol$ /usr/bin/time --verbose ./particle -x 100 -y 100
+	Command being timed: "./particle -x 100 -y 100"
+	User time (seconds): 406.90
+	System time (seconds): 0.41
+	Percent of CPU this job got: 1162%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:35.05
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 2628
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 137
+	Voluntary context switches: 650
+	Involuntary context switches: 615857
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 96096
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+c8451238@pc033-c813:~/git/uibk_parsys_19/assignment4_gol$ cc -version
+cc: error: unrecognized command line option ‘-version’
+cc: fatal error: no input files
+compilation terminated.
+c8451238@pc033-c813:~/git/uibk_parsys_19/assignment4_gol$ cc --version
+cc (Ubuntu 9.2.1-9ubuntu2) 9.2.1 20191008
+Copyright (C) 2019 Free Software Foundation, Inc.
+This is free software; see the source for copying conditions.  There is NO
+warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+c8451238@pc033-c813:~/git/uibk_parsys_19/assignment4_gol$ /usr/bin/time --verbose ./particle -x 100 -y 100
+	Command being timed: "./particle -x 100 -y 100"
+	User time (seconds): 249.48
+	System time (seconds): 0.09
+	Percent of CPU this job got: 1198%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:20.82
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 2624
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 135
+	Voluntary context switches: 8
+	Involuntary context switches: 18545
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 96096
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+c8451238@pc033-c813:~/git/uibk_parsys_19/assignment4_gol$ /usr/bin/time --verbose ./particle -x 100 -y 100
+	Command being timed: "./particle -x 100 -y 100"
+	User time (seconds): 357.93
+	System time (seconds): 0.11
+	Percent of CPU this job got: 1198%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:29.87
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 2592
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 137
+	Voluntary context switches: 10
+	Involuntary context switches: 22279
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 81968
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+c8451238@pc033-c813:~/git/uibk_parsys_19/assignment4_gol$ 
+
+c8451238@pc033-c813:~/git/uibk_parsys_19/assignment4_gol$ /usr/bin/time --verbose ./particle -c 10
+	Command being timed: "./particle -c 10"
+	User time (seconds): 0.58
+	System time (seconds): 0.02
+	Percent of CPU this job got: 1116%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:00.05
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 2504
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 127
+	Voluntary context switches: 1
+	Involuntary context switches: 6005
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 24024
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+c8451238@pc033-c813:~/git/uibk_parsys_19/assignment4_gol$ /usr/bin/time --verbose ./particle -c 10
+	Command being timed: "./particle -c 10"
+	User time (seconds): 0.66
+	System time (seconds): 0.02
+	Percent of CPU this job got: 1104%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:00.06
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 2628
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 129
+	Voluntary context switches: 1
+	Involuntary context switches: 723
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 8008
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+c8451238@pc033-c813:~/git/uibk_parsys_19/assignment4_gol$ /usr/bin/time --verbose ./particle -c 10
+	Command being timed: "./particle -c 10"
+	User time (seconds): 0.64
+	System time (seconds): 0.02
+	Percent of CPU this job got: 1108%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:00.06
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 2464
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 126
+	Voluntary context switches: 1
+	Involuntary context switches: 995
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 8008
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+c8451238@pc033-c813:~/git/uibk_parsys_19/assignment4_gol$ /usr/bin/time --verbose ./particle -c 100
+	Command being timed: "./particle -c 100"
+	User time (seconds): 4.31
+	System time (seconds): 0.03
+	Percent of CPU this job got: 1184%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:00.36
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 2528
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 128
+	Voluntary context switches: 1
+	Involuntary context switches: 2655
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 8008
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+c8451238@pc033-c813:~/git/uibk_parsys_19/assignment4_gol$ /usr/bin/time --verbose ./particle -c 100
+	Command being timed: "./particle -c 100"
+	User time (seconds): 4.34
+	System time (seconds): 0.03
+	Percent of CPU this job got: 1182%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:00.37
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 2600
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 129
+	Voluntary context switches: 1
+	Involuntary context switches: 2222
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 8008
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+c8451238@pc033-c813:~/git/uibk_parsys_19/assignment4_gol$ /usr/bin/time --verbose ./particle -c 100
+	Command being timed: "./particle -c 100"
+	User time (seconds): 2.83
+	System time (seconds): 0.02
+	Percent of CPU this job got: 1183%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:00.24
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 2516
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 130
+	Voluntary context switches: 1
+	Involuntary context switches: 3333
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 8008
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+c8451238@pc033-c813:~/git/uibk_parsys_19/assignment4_gol$ /usr/bin/time --verbose ./particle -c 10000
+	Command being timed: "./particle -c 10000"
+	User time (seconds): 25213.23
+	System time (seconds): 1.95
+	Percent of CPU this job got: 1158%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 36:16.06
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 2824
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 228
+	Voluntary context switches: 9955
+	Involuntary context switches: 2347695
+	Swaps: 0
+	File system inputs: 3536
+	File system outputs: 800800
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+c8451238@pc033-c813:~/git/uibk_parsys_19/assignment4_gol$ /usr/bin/time --verbose ./particle -s 10
+	Command being timed: "./particle -s 10"
+	User time (seconds): 3.96
+	System time (seconds): 0.00
+	Percent of CPU this job got: 1178%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:00.33
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 2600
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 137
+	Voluntary context switches: 12
+	Involuntary context switches: 7080
+	Swaps: 0
+	File system inputs: 88
+	File system outputs: 1056
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+c8451238@pc033-c813:~/git/uibk_parsys_19/assignment4_gol$ /usr/bin/time --verbose ./particle -s 10
+	Command being timed: "./particle -s 10"
+	User time (seconds): 3.78
+	System time (seconds): 0.00
+	Percent of CPU this job got: 1170%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:00.32
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 2624
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 137
+	Voluntary context switches: 1
+	Involuntary context switches: 6774
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 880
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+c8451238@pc033-c813:~/git/uibk_parsys_19/assignment4_gol$ /usr/bin/time --verbose ./particle -s 10
+	Command being timed: "./particle -s 10"
+	User time (seconds): 4.01
+	System time (seconds): 0.00
+	Percent of CPU this job got: 1177%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:00.34
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 2600
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 137
+	Voluntary context switches: 1
+	Involuntary context switches: 665
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 880
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+c8451238@pc033-c813:~/git/uibk_parsys_19/assignment4_gol$ /usr/bin/time --verbose ./particle -s 100
+	Command being timed: "./particle -s 100"
+	User time (seconds): 23.57
+	System time (seconds): 0.00
+	Percent of CPU this job got: 1190%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:01.98
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 2612
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 137
+	Voluntary context switches: 97
+	Involuntary context switches: 1596
+	Swaps: 0
+	File system inputs: 720
+	File system outputs: 9520
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+c8451238@pc033-c813:~/git/uibk_parsys_19/assignment4_gol$ /usr/bin/time --verbose ./particle -s 100
+	Command being timed: "./particle -s 100"
+	User time (seconds): 36.05
+	System time (seconds): 0.01
+	Percent of CPU this job got: 1195%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:03.01
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 2660
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 137
+	Voluntary context switches: 3
+	Involuntary context switches: 3905
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 8080
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+c8451238@pc033-c813:~/git/uibk_parsys_19/assignment4_gol$ /usr/bin/time --verbose ./particle -s 100
+	Command being timed: "./particle -s 100"
+	User time (seconds): 37.52
+	System time (seconds): 0.00
+	Percent of CPU this job got: 1196%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:03.13
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 2656
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 136
+	Voluntary context switches: 2
+	Involuntary context switches: 7916
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 8080
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+c8451238@pc033-c813:~/git/uibk_parsys_19/assignment4_gol$ /usr/bin/time --verbose ./particle -c 10 -s 10
+	Command being timed: "./particle -c 10 -s 10"
+	User time (seconds): 0.49
+	System time (seconds): 0.00
+	Percent of CPU this job got: 1016%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:00.04
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 2604
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 129
+	Voluntary context switches: 9
+	Involuntary context switches: 15
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 264
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+c8451238@pc033-c813:~/git/uibk_parsys_19/assignment4_gol$ /usr/bin/time --verbose ./particle -c 10 -s 10
+	Command being timed: "./particle -c 10 -s 10"
+	User time (seconds): 0.09
+	System time (seconds): 0.00
+	Percent of CPU this job got: 791%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:00.01
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 2552
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 128
+	Voluntary context switches: 1
+	Involuntary context switches: 383
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 88
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+c8451238@pc033-c813:~/git/uibk_parsys_19/assignment4_gol$ /usr/bin/time --verbose ./particle -c 10 -s 10
+	Command being timed: "./particle -c 10 -s 10"
+	User time (seconds): 0.07
+	System time (seconds): 0.00
+	Percent of CPU this job got: 750%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:00.01
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 2568
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 128
+	Voluntary context switches: 1
+	Involuntary context switches: 3
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 88
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+c8451238@pc033-c813:~/git/uibk_parsys_19/assignment4_gol$ /usr/bin/time --verbose ./particle -c 10 -s 100
+	Command being timed: "./particle -c 10 -s 100"
+	User time (seconds): 0.11
+	System time (seconds): 0.00
+	Percent of CPU this job got: 871%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:00.01
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 2540
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 130
+	Voluntary context switches: 1
+	Involuntary context switches: 9
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 2248
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+c8451238@pc033-c813:~/git/uibk_parsys_19/assignment4_gol$ /usr/bin/time --verbose ./particle -c 10 -s 100
+	Command being timed: "./particle -c 10 -s 100"
+	User time (seconds): 0.10
+	System time (seconds): 0.00
+	Percent of CPU this job got: 884%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:00.01
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 2560
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 129
+	Voluntary context switches: 1
+	Involuntary context switches: 6
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 808
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+c8451238@pc033-c813:~/git/uibk_parsys_19/assignment4_gol$ /usr/bin/time --verbose ./particle -c 10 -s 100
+	Command being timed: "./particle -c 10 -s 100"
+	User time (seconds): 0.11
+	System time (seconds): 0.00
+	Percent of CPU this job got: 930%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:00.01
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 2516
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 129
+	Voluntary context switches: 1
+	Involuntary context switches: 4
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 808
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+c8451238@pc033-c813:~/git/uibk_parsys_19/assignment4_gol$ /usr/bin/time --verbose ./particle -c 100 -s 10
+	Command being timed: "./particle -c 100 -s 10"
+	User time (seconds): 0.11
+	System time (seconds): 0.00
+	Percent of CPU this job got: 871%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:00.01
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 2556
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 130
+	Voluntary context switches: 1
+	Involuntary context switches: 8
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 88
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+c8451238@pc033-c813:~/git/uibk_parsys_19/assignment4_gol$ /usr/bin/time --verbose ./particle -c 100 -s 10
+	Command being timed: "./particle -c 100 -s 10"
+	User time (seconds): 0.05
+	System time (seconds): 0.00
+	Percent of CPU this job got: 750%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:00.00
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 2572
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 130
+	Voluntary context switches: 1
+	Involuntary context switches: 1
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 88
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+c8451238@pc033-c813:~/git/uibk_parsys_19/assignment4_gol$ /usr/bin/time --verbose ./particle -c 100 -s 10
+	Command being timed: "./particle -c 100 -s 10"
+	User time (seconds): 0.11
+	System time (seconds): 0.00
+	Percent of CPU this job got: 915%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:00.01
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 2600
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 129
+	Voluntary context switches: 1
+	Involuntary context switches: 2
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 88
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+c8451238@pc033-c813:~/git/uibk_parsys_19/assignment4_gol$ /usr/bin/time --verbose ./particle -s 10000
+	Command being timed: "./particle -s 10000"
+	User time (seconds): 3777.76
+	System time (seconds): 1.12
+	Percent of CPU this job got: 1198%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 5:15.21
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 2656
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 136
+	Voluntary context switches: 804
+	Involuntary context switches: 326545
+	Swaps: 0
+	File system inputs: 5464
+	File system outputs: 960096
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+c8451238@pc033-c813:~/git/uibk_parsys_19/assignment4_gol$ 
+
+
