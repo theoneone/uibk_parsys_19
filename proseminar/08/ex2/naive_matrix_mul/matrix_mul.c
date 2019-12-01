@@ -5,6 +5,13 @@
 #include <math.h>
 #include <time.h>
 
+/****************************** matrix typedef *******************************/
+typedef struct {
+	int cols;
+	int rows;
+	double *data;
+} matrix;
+
 /****************************** simulation data ******************************/
 
 static int a_columns = 1000;
@@ -82,7 +89,7 @@ static void process_options(int argc, char **argv)
 		case 'c':
 			a_columns = strtol(optarg, &end, 10);
 			break;
-		case 'l':
+		case 'r':
 			a_rows = strtol(optarg, &end, 10);
 			break;
 		case 'b':
@@ -151,34 +158,36 @@ static inline double gen_number(double min, double max)
 	return min + ((double)rand() / RAND_MAX) * (max - min);
 }
 
-static int create_matrix(double *a, int columns, int rows, int init_rand)
+static int init_matrix(matrix a, const int columns, const int rows, const int init_rand)
 {
-	a = (double*)malloc(sizeof(double) * columns * rows);
-	if (a == NULL) {
+	a.data = (double*)malloc(sizeof(double) * columns * rows);
+	if (a.data == NULL) {
 		perror("allocating matrix");
 		return -1;
 	}
+	a.cols = columns;
+	a.rows = rows;
 
 	if (init_rand) {
 		for (int i = 0; i < columns * rows; ++i) {
-			a[i] = gen_number(min_value, max_value);
+			a.data[i] = gen_number(min_value, max_value);
 		}
 	}
 	return 0;
 }
 
-static inline int index(int i, int j, int columns)
+static inline int index(const int i, const int j, const int columns)
 {
 	return j*columns + i;
 }
 
-static int multiply(double *a, double *b, double *c)
+static int multiply(const matrix a, const matrix b, matrix c)
 {
 	//TODO implement
 	return -1;
 }
 
-static int output_to_console(double *c)
+static int output_to_console(const matrix c)
 {
 	//TODO implement
 	return -1;
@@ -191,21 +200,25 @@ int main(int argc, char **argv)
 
 	process_options(argc, argv);
 
-	double *a = NULL;
-	double *b = NULL;
-	double *c = NULL;
+	matrix a = {.cols = 0, .rows = 0, .data = NULL};
+	matrix b = {.cols = 0, .rows = 0, .data = NULL};
+	matrix c = {.cols = 0, .rows = 0, .data = NULL};
 
-	if (create_matrix(a, a_columns, a_rows, 1)) goto out;
-	if (create_matrix(b, b_columns, a_columns, 1)) goto out;
-	if (create_matrix(c, b_columns, a_rows, 0)) goto out;
+	if (init_matrix(a, a_columns, a_rows, 1)) goto out;
+	if (init_matrix(b, b_columns, a_columns, 1)) goto out;
+	if (init_matrix(c, b_columns, a_rows, 0)) goto out;
 
+	time_t t_start, t_end;
+	time(&t_start);
 	multiply(a, b, c);
+	time(&t_end);
+	fprintf(stderr, "Used time for multiplication: %f\n", difftime(t_end, t_start));
 	if(get_result) output_to_console(c);
 
 	status = EXIT_SUCCESS;
 out:
-	if(a != NULL) free(a);
-	if(b != NULL) free(b);
-	if(c != NULL) free(c);
+	if(a.data != NULL) free(a.data);
+	if(b.data != NULL) free(b.data);
+	if(c.data != NULL) free(c.data);
 	return status;
 }

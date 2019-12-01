@@ -6,7 +6,7 @@ LDLIBS := -lm -lz
 all: matrix_mul
 
 matrix_mul: matrix_mul.o
-matrix_mul.o: matrix_mul.c particle.h
+matrix_mul.o: matrix_mul.c
 
 .PHONY: clean
 clean:
