@@ -8,6 +8,7 @@
 #include <errno.h>
 
 #include <math.h>
+#include <omp.h>
 
 #define PAGE_SIZE (4096)
 #define PAGES_PER_THREAD (1)
@@ -94,9 +95,9 @@ static int do_sampling(int randomfd, uint64_t num_samples, uint64_t *hits,
 				return -1;
 		}
 
-		for (i = 0; i < num_threads; ++i) {
+#pragma omp parallel for schedule(static, 1)
+		for (i = 0; i < num_threads; ++i)
 			hitcount[i] = count_circle_hits(buffers[i], roundsz);
-		}
 
 		for (i = 0; i < num_threads; ++i)
 			(*hits) += hitcount[i];
@@ -134,7 +135,7 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	if (do_sampling(fd, sample_count, &hits, 1))
+	if (do_sampling(fd, sample_count, &hits, 2))
 		goto out;
 
 	printf("Hit/sample ratio: %lu,%lu\n", hits, sample_count);
