@@ -2,7 +2,7 @@
 
 int main(int argc, char **argv)
 {
-	size_t x, y, t, N, T, frame_ID = 0;
+	size_t t, N, T, frame_ID = 0;
 	size_t source_x, source_y;
 	value_t *A, *B, *H;
 
@@ -21,8 +21,8 @@ int main(int argc, char **argv)
 	B = calloc(sizeof(value_t), N * N);
 
 	// initial temperature is 0C everywhere (273 K)
-	for (y = 0; y < N; ++y) {
-		for (x = 0; x < N; ++x) {
+	for (size_t y = 0; y < N; ++y) {
+		for (size_t x = 0; x < N; ++x) {
 			A[y * N + x] = 273;
 		}
 	}
@@ -36,8 +36,9 @@ int main(int argc, char **argv)
 				  A, N, N, 273, 273 + 60);
 		}
 
-		for (y = 0; y < N; ++y) {
-			for (x = 0; x < N; ++x) {
+#pragma omp parallel for collapse(2) schedule(static, N / omp_get_num_threads())
+		for (size_t y = 0; y < N; ++y) {
+			for (size_t x = 0; x < N; ++x) {
 				if (x == source_x && y == source_y) {
 					B[y * N + x] = A[y * N + x];
 				} else {

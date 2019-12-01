@@ -7,6 +7,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <omp.h>
 
 
 typedef double value_t;
