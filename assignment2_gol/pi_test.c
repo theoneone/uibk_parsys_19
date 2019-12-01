@@ -1,3 +1,4 @@
+#include <sys/mman.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdint.h>
@@ -8,35 +9,111 @@
 
 #include <math.h>
 
-static int get_sample(int fd, uint8_t *sample)
+#define PAGE_SIZE (4096)
+#define PAGES_PER_THREAD (1)
+
+static int read_buffer(int fd, void *buffer, size_t size)
 {
-	int ret;
-retry:
-	ret = read(fd, sample, sizeof(*sample));
+	ssize_t ret;
 
-	if (ret < 0) {
-		if (errno == EINTR)
-			goto retry;
+	while (size > 0) {
+		ret = read(fd, buffer, size);
 
-		perror("reading random sample");
-		return -1;
-	}
+		if (ret < 0) {
+			if (errno == EINTR)
+				continue;
 
-	if (ret == 0) {
-		fputs("reading random sample: unexpected end-of-file\n",
-		      stderr);
-		return -1;
+			perror("read");
+			return -1;
+		}
+
+		if (ret == 0) {
+			fputs("read: unexpected end-of-file\n", stderr);
+			return -1;
+		}
+
+		buffer = (char *)buffer + ret;
+		size -= ret;
 	}
 
 	return 0;
 }
 
+static size_t count_circle_hits(const uint16_t *samples, size_t num_samples)
+{
+	size_t hit_count = 0;
+	uint8_t x, y;
+	size_t i;
+
+	for (i = 0; i < num_samples; ++i) {
+		x =  samples[i]       & 0x0FF;
+		y = (samples[i] >> 8) & 0x0FF;
+
+		if (sqrt(x * x + y * y) <= 256.0)
+			hit_count += 1;
+	}
+
+	return hit_count;
+}
+
+static int do_sampling(int randomfd, uint64_t num_samples, uint64_t *hits,
+		       size_t num_threads)
+{
+	size_t i, hitcount[num_threads];
+	uint16_t *buffers[num_threads];
+	uint64_t maxroundsz, roundsz;
+	int ret = -1;
+
+	for (i = 0; i < num_threads; ++i) {
+		buffers[i] = mmap(NULL, PAGE_SIZE * PAGES_PER_THREAD,
+				  PROT_READ | PROT_WRITE,
+				  MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+
+		if (buffers[i] == MAP_FAILED) {
+			perror("mmap");
+			num_threads = i;
+			goto out;
+		}
+	}
+
+	maxroundsz = (PAGE_SIZE * PAGES_PER_THREAD) / sizeof(buffers[0][0]);
+	*hits = 0;
+
+	while (num_samples > 0) {
+		roundsz = num_samples / num_threads;
+
+		if (roundsz > maxroundsz)
+			roundsz = maxroundsz;
+
+		num_samples -= roundsz * num_threads;
+
+		for (i = 0; i < num_threads; ++i) {
+			ret = read_buffer(randomfd, buffers[i],
+					  roundsz * sizeof(buffers[0][0]));
+			if (ret)
+				return -1;
+		}
+
+		for (i = 0; i < num_threads; ++i) {
+			hitcount[i] = count_circle_hits(buffers[i], roundsz);
+		}
+
+		for (i = 0; i < num_threads; ++i)
+			(*hits) += hitcount[i];
+	}
+
+	ret = 0;
+out:
+	for (i = 0; i < num_threads; ++i)
+		munmap(buffers[i], PAGE_SIZE * PAGES_PER_THREAD);
+
+	return ret;
+}
+
 int main(int argc, char **argv)
 {
-	uint64_t i, hit = 0, sample_count = 0;
-	int status = EXIT_FAILURE;
-	uint8_t x, y;
-	int fd;
+	uint64_t hits = 0, sample_count = 0;
+	int fd, status = EXIT_FAILURE;
 
 	if (argc != 2) {
 		fprintf(stderr, "Usage: %s <sample count>\n", argv[0]);
@@ -57,17 +134,11 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	for (i = 0; i < sample_count; ++i) {
-		if (get_sample(fd, &x))
-			goto out;
-		if (get_sample(fd, &y))
-			goto out;
+	if (do_sampling(fd, sample_count, &hits, 1))
+		goto out;
 
-		if (sqrt(x * x + y * y) <= 256.0)
-			hit += 1;
-	}
-
-	printf("%lu,%lu\n", hit, sample_count);
+	printf("Hit/sample ratio: %lu,%lu\n", hits, sample_count);
+	printf("PI approximation: %f\n", 4.0 * hits / sample_count);
 
 	status = EXIT_SUCCESS;
 out:
