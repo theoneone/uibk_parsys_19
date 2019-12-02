@@ -21,6 +21,8 @@ static double min_value = 10.0;
 static double max_value = 100.0;
 static unsigned int rand_seed = 0;
 static int get_result = 0;
+static int get_inputs = 0;
+static int to_integer = 0;
 
 /************************** command line processing **************************/
 
@@ -32,11 +34,13 @@ static struct option long_opts[] = {
 	{ "max-value", required_argument, NULL, 'M' },
 	{ "rand-seed", optional_argument, NULL, 's' },
 	{ "get-result", no_argument, NULL, 'o'},
+	{ "get-inputs", no_argument, NULL, 'i'},
+	{ "to-integer", no_argument, NULL, 't'},
 	{ "help", no_argument, NULL, 'h' },
 	{ "version", no_argument, NULL, 'V' },
 };
 
-static const char *short_opts = "c:r:b:m:M:s::ohV";
+static const char *short_opts = "c:r:b:m:M:s::oithV";
 
 static const char *usagestr =
 "Usage: matrix_mul [OPTIONS...]\n"
@@ -55,8 +59,11 @@ static const char *usagestr =
 "                               input values.\n"
 "  --rand-seed[=num], -s[num]   Integer seed for random generator.\n"
 "                               Set parameter without value for randomized seed.\n"
-"  --get-result, -o             Prompt the result stdout\n"
+"  --get-result, -o             Prompt the result to stdout\n"
 "                               as comma separated values.\n"
+"  --get-inputs, -i             Prompt the generated input matrices to stdout\n"
+"                               as comma separated values.\n"
+"  --to-integer, -t             Round input data."
 "\n"
 "  --help, -h                   Display this help text and exit.\n"
 "  --version, -V                Display version information and exit.\n"
@@ -103,15 +110,19 @@ static void process_options(int argc, char **argv)
 			break;
 		case 's':
 			if (optarg != NULL) {
-				printf("s=%s\n", optarg);
 				rand_seed = strtol(optarg, &end, 10);
 			} else {
-				printf("s=NULL");
 				rand_seed = time(NULL);
 			}
 			break;
 		case 'o':
 			get_result = 1;
+			break;
+		case 'i':
+			get_inputs = 1;
+			break;
+		case 't':
+			to_integer = 1;
 			break;
 		case 'h':
 			fputs(usagestr, stdout);
@@ -155,44 +166,62 @@ fail_arg:
 
 /*****************************************************************************/
 
-static inline double gen_number(double min, double max)
+static double gen_number(const double min, const double max)
 {
 	return min + ((double)rand() / RAND_MAX) * (max - min);
 }
 
-static int init_matrix(matrix a, const int columns, const int rows, const int init_rand)
+static double gen_integer(const double min, const double max)
 {
-	a.data = (double*)malloc(sizeof(double) * columns * rows);
-	if (a.data == NULL) {
+	return round(min + ((double)rand() / RAND_MAX) * (max - min));
+}
+
+static int init_matrix(matrix *a, const int columns, const int rows, double (*generator)(const double, const double))
+{
+	a->data = (double*)malloc(sizeof(double) * columns * rows);
+	if (a->data == NULL) {
 		perror("allocating matrix");
 		return -1;
 	}
-	a.cols = columns;
-	a.rows = rows;
+	a->cols = columns;
+	a->rows = rows;
 
-	if (init_rand) {
+	if (generator != NULL) {
 		for (int i = 0; i < columns * rows; ++i) {
-			a.data[i] = gen_number(min_value, max_value);
+			a->data[i] = generator(min_value, max_value);
 		}
 	}
 	return 0;
 }
 
-static inline int index(const int i, const int j, const int columns)
+static inline int index(const int col, const int row, const int columns)
 {
-	return j*columns + i;
+	return row*columns + col;
 }
 
-static int multiply(const matrix a, const matrix b, matrix c)
+static void multiply(const matrix a, const matrix b, matrix c)
 {
-	//TODO implement
-	return -1;
+	double tmp;
+	for (int j = 0; j < c.rows; ++j) {
+		for (int i = 0; i < c.cols; ++i) {
+			tmp = 0;
+			for (int k = 0; k < a.cols; ++k) {
+				tmp += a.data[index(k, j, a.cols)] * b.data[index(i, k, b.cols)];
+			}
+			c.data[index(i, j, c.cols)] = tmp;
+		}
+	}
 }
 
 static int output_to_console(const matrix c)
 {
-	//TODO implement
-	return -1;
+	for (int j = 0; j < c.rows; ++j) {
+		for (int i = 0; i < c.cols; ++i) {
+			fprintf(stdout, "%f,", c.data[index(i, j, c.cols)]);
+		}
+		fprintf(stdout, "\n");
+	}
+	return 0;
 }
 
 int main(int argc, char **argv)
@@ -206,16 +235,25 @@ int main(int argc, char **argv)
 	matrix b = {.cols = 0, .rows = 0, .data = NULL};
 	matrix c = {.cols = 0, .rows = 0, .data = NULL};
 
-	if (init_matrix(a, a_columns, a_rows, 1)) goto out;
-	if (init_matrix(b, b_columns, a_columns, 1)) goto out;
-	if (init_matrix(c, b_columns, a_rows, 0)) goto out;
+	double (* gen_num)(const double, const double) = to_integer ? &gen_integer : &gen_number;
+	if (init_matrix(&a, a_columns, a_rows, gen_num)) goto out;
+	if (init_matrix(&b, b_columns, a_columns, gen_num)) goto out;
+	if (init_matrix(&c, b_columns, a_rows, NULL)) goto out;
 
 	time_t t_start, t_end;
 	time(&t_start);
 	multiply(a, b, c);
 	time(&t_end);
 	fprintf(stderr, "Used time for multiplication: %f\n", difftime(t_end, t_start));
-	if(get_result) output_to_console(c);
+	if(get_inputs) {
+		output_to_console(a);
+		puts("\n");
+		output_to_console(b);
+		puts("\n");
+	}
+	if(get_result) {
+		output_to_console(c);
+	}
 
 	status = EXIT_SUCCESS;
 out:
