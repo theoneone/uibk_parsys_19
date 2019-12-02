@@ -1,4 +1,3 @@
-#include <sys/mman.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdint.h>
@@ -10,91 +9,53 @@
 #include <math.h>
 #include <omp.h>
 
-#define PAGE_SIZE (4096)
-#define PAGES_PER_THREAD (1)
-
-static int read_buffer(int fd, void *buffer, size_t size)
+static int get_random_seed(int fd, unsigned int *seed)
 {
 	ssize_t ret;
+retry:
+	ret = read(fd, seed, sizeof(*seed));
 
-	while (size > 0) {
-		ret = read(fd, buffer, size);
+	if (ret < 0) {
+		if (errno == EINTR)
+			goto retry;
 
-		if (ret < 0) {
-			if (errno == EINTR)
-				continue;
+		perror("read");
+		return -1;
+	}
 
-			perror("read");
-			return -1;
-		}
-
-		if (ret == 0) {
-			fputs("read: unexpected end-of-file\n", stderr);
-			return -1;
-		}
-
-		buffer = (char *)buffer + ret;
-		size -= ret;
+	if ((size_t)ret < sizeof(*seed)) {
+		fputs("read from random device truncated\n", stderr);
+		return -1;
 	}
 
 	return 0;
 }
 
-static size_t count_circle_hits(const uint16_t *samples, size_t num_samples)
+static int count_circle_hits(int randomfd, uint64_t num_samples,
+			     uint64_t *total_hits)
 {
-	size_t hit_count = 0;
+	uint64_t i, hit_count = 0;
+	unsigned int seed;
 	double x, y;
-	size_t i;
+	int ret;
+
+#pragma omp critical
+	ret = get_random_seed(randomfd, &seed);
+
+	if (ret)
+		return -1;
 
 	for (i = 0; i < num_samples; ++i) {
-		x = ( samples[i]       & 0x0FF) / 256.0;
-		y = ((samples[i] >> 8) & 0x0FF) / 256.0;
+		x = (double)rand_r(&seed) / RAND_MAX;
+		y = (double)rand_r(&seed) / RAND_MAX;
 
 		if (sqrt(x * x + y * y) <= 1.0)
 			hit_count += 1;
 	}
 
-	return hit_count;
-}
+#pragma omp atomic
+	*total_hits += hit_count;
 
-static int do_sampling(int randomfd, uint64_t num_samples, uint64_t *hits)
-{
-	size_t bufsize, bufcount, roundsz;
-	uint64_t local_hitcount = 0;
-	uint16_t *buffer;
-	int ret;
-
-	bufsize = PAGE_SIZE * PAGES_PER_THREAD;
-	bufcount = bufsize / sizeof(buffer[0]);
-
-	buffer = mmap(NULL, bufsize, PROT_READ | PROT_WRITE,
-		      MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-
-	if (buffer == MAP_FAILED) {
-		perror("mmap");
-		return -1;
-	}
-
-	while (num_samples > 0) {
-#pragma omp critical
-		{
-			ret = read_buffer(randomfd, buffer, bufsize);
-			*hits += local_hitcount;
-		}
-
-		if (ret)
-			return -1;
-
-		roundsz = num_samples > bufcount ? bufcount : num_samples;
-		num_samples -= roundsz;
-
-		local_hitcount = count_circle_hits(buffer, roundsz);
-	}
-
-#pragma omp critical
-	*hits += local_hitcount;
-
-	munmap(buffer, bufsize);
 	return 0;
 }
 
@@ -125,7 +86,7 @@ int main(int argc, char **argv)
 	sample_count /= omp_get_num_threads();
 
 #pragma omp parallel
-	if (do_sampling(fd, sample_count, &hits))
+	if (count_circle_hits(fd, sample_count, &hits))
 		status = EXIT_FAILURE;
 
 	sample_count *= omp_get_num_threads();
