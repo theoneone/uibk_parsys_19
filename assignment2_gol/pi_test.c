@@ -43,78 +43,65 @@ static int read_buffer(int fd, void *buffer, size_t size)
 static size_t count_circle_hits(const uint16_t *samples, size_t num_samples)
 {
 	size_t hit_count = 0;
-	uint8_t x, y;
+	double x, y;
 	size_t i;
 
 	for (i = 0; i < num_samples; ++i) {
-		x =  samples[i]       & 0x0FF;
-		y = (samples[i] >> 8) & 0x0FF;
+		x = ( samples[i]       & 0x0FF) / 256.0;
+		y = ((samples[i] >> 8) & 0x0FF) / 256.0;
 
-		if (sqrt(x * x + y * y) <= 256.0)
+		if (sqrt(x * x + y * y) <= 1.0)
 			hit_count += 1;
 	}
 
 	return hit_count;
 }
 
-static int do_sampling(int randomfd, uint64_t num_samples, uint64_t *hits,
-		       size_t num_threads)
+static int do_sampling(int randomfd, uint64_t num_samples, uint64_t *hits)
 {
-	size_t i, hitcount[num_threads];
-	uint16_t *buffers[num_threads];
-	uint64_t maxroundsz, roundsz;
-	int ret = -1;
+	size_t bufsize, bufcount, roundsz;
+	uint64_t local_hitcount = 0;
+	uint16_t *buffer;
+	int ret;
 
-	for (i = 0; i < num_threads; ++i) {
-		buffers[i] = mmap(NULL, PAGE_SIZE * PAGES_PER_THREAD,
-				  PROT_READ | PROT_WRITE,
-				  MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+	bufsize = PAGE_SIZE * PAGES_PER_THREAD;
+	bufcount = bufsize / sizeof(buffer[0]);
 
-		if (buffers[i] == MAP_FAILED) {
-			perror("mmap");
-			num_threads = i;
-			goto out;
-		}
+	buffer = mmap(NULL, bufsize, PROT_READ | PROT_WRITE,
+		      MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+
+	if (buffer == MAP_FAILED) {
+		perror("mmap");
+		return -1;
 	}
-
-	maxroundsz = (PAGE_SIZE * PAGES_PER_THREAD) / sizeof(buffers[0][0]);
-	*hits = 0;
 
 	while (num_samples > 0) {
-		roundsz = num_samples / num_threads;
-
-		if (roundsz > maxroundsz)
-			roundsz = maxroundsz;
-
-		num_samples -= roundsz * num_threads;
-
-		for (i = 0; i < num_threads; ++i) {
-			ret = read_buffer(randomfd, buffers[i],
-					  roundsz * sizeof(buffers[0][0]));
-			if (ret)
-				return -1;
+#pragma omp critical
+		{
+			ret = read_buffer(randomfd, buffer, bufsize);
+			*hits += local_hitcount;
 		}
 
-#pragma omp parallel for schedule(static, 1)
-		for (i = 0; i < num_threads; ++i)
-			hitcount[i] = count_circle_hits(buffers[i], roundsz);
+		if (ret)
+			return -1;
 
-		for (i = 0; i < num_threads; ++i)
-			(*hits) += hitcount[i];
+		roundsz = num_samples > bufcount ? bufcount : num_samples;
+		num_samples -= roundsz;
+
+		local_hitcount = count_circle_hits(buffer, roundsz);
 	}
 
-	ret = 0;
-out:
-	for (i = 0; i < num_threads; ++i)
-		munmap(buffers[i], PAGE_SIZE * PAGES_PER_THREAD);
+#pragma omp critical
+	*hits += local_hitcount;
 
-	return ret;
+	munmap(buffer, bufsize);
+	return 0;
 }
 
 int main(int argc, char **argv)
 {
 	uint64_t hits = 0, sample_count = 0;
-	int fd, status = EXIT_FAILURE;
+	int fd, status = EXIT_SUCCESS;
 
 	if (argc != 2) {
 		fprintf(stderr, "Usage: %s <sample count>\n", argv[0]);
@@ -135,14 +122,19 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	if (do_sampling(fd, sample_count, &hits, 2))
-		goto out;
+	sample_count /= omp_get_num_threads();
 
-	printf("Hit/sample ratio: %lu,%lu\n", hits, sample_count);
-	printf("PI approximation: %f\n", 4.0 * hits / sample_count);
+#pragma omp parallel
+	if (do_sampling(fd, sample_count, &hits))
+		status = EXIT_FAILURE;
 
-	status = EXIT_SUCCESS;
-out:
+	sample_count *= omp_get_num_threads();
+
+	if (status == EXIT_SUCCESS) {
+		printf("Hit/sample ratio: %lu,%lu\n", hits, sample_count);
+		printf("PI approximation: %f\n", 4.0 * hits / sample_count);
+	}
+
 	close(fd);
 	return status;
 }
