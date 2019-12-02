@@ -53,8 +53,8 @@ static const char *usagestr =
 "                               input values.\n"
 "  --max-value, -M <number>     Upper threshold for randomized\n"
 "                               input values.\n"
-"  --rand-seed, -s [number]     Integer seed for random generator.\n"
-"                               Omit argument for randomized seed.\n"
+"  --rand-seed[=num], -s[num]   Integer seed for random generator.\n"
+"                               Set parameter without value for randomized seed.\n"
 "  --get-result, -o             Prompt the result stdout\n"
 "                               as comma separated values.\n"
 "\n"
@@ -103,8 +103,10 @@ static void process_options(int argc, char **argv)
 			break;
 		case 's':
 			if (optarg != NULL) {
+				printf("s=%s\n", optarg);
 				rand_seed = strtol(optarg, &end, 10);
 			} else {
+				printf("s=NULL");
 				rand_seed = time(NULL);
 			}
 			break;
