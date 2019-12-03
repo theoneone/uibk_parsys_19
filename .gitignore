@@ -48,3 +48,6 @@ assignment*/*/**/*
 **/*.log
 **/*.synctex.gz
 
+# ignore copyrighted material
+lecture/OpenMP3.1-CCard.pdf
+
