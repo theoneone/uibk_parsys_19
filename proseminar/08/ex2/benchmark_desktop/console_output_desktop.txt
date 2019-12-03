@@ -1,0 +1,357 @@
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/naive_matrix_mul$ make
+gcc -std=c99 -pedantic -D_DEFAULT_SOURCE -Wall -Wextra -O0   -c -o matrix_mul.o matrix_mul.c
+gcc   matrix_mul.o  -lm -o matrix_mul
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/naive_matrix_mul$ ./matrix_mul 
+Used time for multiplication: 6.000000
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/naive_matrix_mul$ ./matrix_mul -b 5000
+Used time for multiplication: 36.000000
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/naive_matrix_mul$ time ./matrix_mul
+Used time for multiplication: 6.000000
+
+real	0m6.271s
+user	0m6.271s
+sys	0m0.000s
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/naive_matrix_mul$ time ./matrix_mul -b 5000
+Used time for multiplication: 37.000000
+
+real	0m37.421s
+user	0m37.388s
+sys	0m0.032s
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/naive_matrix_mul$ make clean
+rm -f matrix_mul *.o gmon.out
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/naive_matrix_mul$ make OPT=-O3
+gcc -std=c99 -pedantic -D_DEFAULT_SOURCE -Wall -Wextra -O3   -c -o matrix_mul.o matrix_mul.c
+gcc   matrix_mul.o  -lm -o matrix_mul
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/naive_matrix_mul$ ./matrix_mul 
+Used time for multiplication: 1.000000
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/naive_matrix_mul$ ./matrix_mul -b 5000
+Used time for multiplication: 8.000000
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/naive_matrix_mul$ time ./matrix_mul
+Used time for multiplication: 1.000000
+
+real	0m1.252s
+user	0m1.251s
+sys	0m0.001s
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/naive_matrix_mul$ time ./matrix_mul -b 5000
+Used time for multiplication: 8.000000
+
+real	0m7.789s
+user	0m7.749s
+sys	0m0.041s
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/naive_matrix_mul$ time 
+
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/naive_matrix_mul$ make profile OPT=-O0 OUT=naive_matrix_mul_o0.txt
+rm -f matrix_mul *.o gmon.out
+gcc -std=c99 -pedantic -D_DEFAULT_SOURCE -Wall -Wextra -O0 -g -pg   -c -o matrix_mul.o matrix_mul.c
+gcc -pg  matrix_mul.o  -lm -o matrix_mul
+./matrix_mul -c 1000 -r 1000 -b 1000
+Used time for multiplication: 23.000000
+gprof ./matrix_mul >1k_naive_matrix_mul_o0.txt
+./matrix_mul -c 1000 -r 1000 -b 5000
+Used time for multiplication: 128.000000
+gprof ./matrix_mul >5k_naive_matrix_mul_o0.txt
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/naive_matrix_mul$ make profile OPT=-O3 OUT=naive_matrix_mul_o3.txt
+rm -f matrix_mul *.o gmon.out
+gcc -std=c99 -pedantic -D_DEFAULT_SOURCE -Wall -Wextra -O3 -g -pg   -c -o matrix_mul.o matrix_mul.c
+gcc -pg  matrix_mul.o  -lm -o matrix_mul
+./matrix_mul -c 1000 -r 1000 -b 1000
+Used time for multiplication: 1.000000
+gprof ./matrix_mul >1k_naive_matrix_mul_o3.txt
+./matrix_mul -c 1000 -r 1000 -b 5000
+Used time for multiplication: 8.000000
+gprof ./matrix_mul >5k_naive_matrix_mul_o3.txt
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/naive_matrix_mul$ 
+
+
+
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/transpose_matrix_mul$ make profile OPT=-O3 OUT=transp_matrix_mul_o3.txt
+rm -f matrix_mul *.o gmon.out
+gcc -std=c99 -pedantic -D_DEFAULT_SOURCE -Wall -Wextra -O3 -g -pg   -c -o matrix_mul.o matrix_mul.c
+gcc -pg  matrix_mul.o  -lm -o matrix_mul
+./matrix_mul -c 1000 -r 1000 -b 1000
+Used time for multiplication: 1.000000
+gprof ./matrix_mul >1k_transp_matrix_mul_o3.txt
+./matrix_mul -c 1000 -r 1000 -b 5000
+Used time for multiplication: 5.000000
+gprof ./matrix_mul >5k_transp_matrix_mul_o3.txt
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/transpose_matrix_mul$ make profile OPT=-O0 OUT=transp_matrix_mul_o0.txt
+rm -f matrix_mul *.o gmon.out
+gcc -std=c99 -pedantic -D_DEFAULT_SOURCE -Wall -Wextra -O0 -g -pg   -c -o matrix_mul.o matrix_mul.c
+gcc -pg  matrix_mul.o  -lm -o matrix_mul
+./matrix_mul -c 1000 -r 1000 -b 1000
+Used time for multiplication: 20.000000
+gprof ./matrix_mul >1k_transp_matrix_mul_o0.txt
+./matrix_mul -c 1000 -r 1000 -b 5000
+Used time for multiplication: 100.000000
+gprof ./matrix_mul >5k_transp_matrix_mul_o0.txt
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/transpose_matrix_mul$
+
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/transpose_matrix_mul$ make
+gcc -std=c99 -pedantic -D_DEFAULT_SOURCE -Wall -Wextra -O0   -c -o matrix_mul.o matrix_mul.c
+gcc   matrix_mul.o  -lm -o matrix_mul
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/transpose_matrix_mul$ ./matrix_mul -b 5000
+Used time for multiplication: 23.000000
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/transpose_matrix_mul$ ./matrix_mul
+Used time for multiplication: 4.000000
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/transpose_matrix_mul$ time ./matrix_mul
+Used time for multiplication: 5.000000
+
+real	0m4.534s
+user	0m4.526s
+sys	0m0.009s
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/transpose_matrix_mul$ time ./matrix_mul -b 5000
+Used time for multiplication: 23.000000
+
+real	0m22.835s
+user	0m22.798s
+sys	0m0.037s
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/transpose_matrix_mul$ make clean
+rm -f matrix_mul *.o gmon.out
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/transpose_matrix_mul$ make OPT=-O3
+gcc -std=c99 -pedantic -D_DEFAULT_SOURCE -Wall -Wextra -O3   -c -o matrix_mul.o matrix_mul.c
+gcc   matrix_mul.o  -lm -o matrix_mul
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/transpose_matrix_mul$ ./matrix_mul -b 5000
+Used time for multiplication: 5.000000
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/transpose_matrix_mul$ ./matrix_mul
+Used time for multiplication: 1.000000
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/transpose_matrix_mul$ time ./matrix_mul
+Used time for multiplication: 1.000000
+
+real	0m0.924s
+user	0m0.920s
+sys	0m0.004s
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/transpose_matrix_mul$ time ./matrix_mul -b 5000
+Used time for multiplication: 5.000000
+
+real	0m4.931s
+user	0m4.899s
+sys	0m0.032s
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/transpose_matrix_mul$ 
+
+
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/parallel_matrix_mul$ export OMP_NUM_THREADS=12
+
+
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/parallel_matrix_mul$ make profile OPT=-O0 OUT=parallel_mul_o0.txt
+rm -f matrix_mul *.o gmon.out
+gcc -std=c99 -pedantic -D_DEFAULT_SOURCE -Wall -Wextra -fopenmp -O0 -g -pg   -c -o matrix_mul.o matrix_mul.c
+gcc -pg  matrix_mul.o  -lm -lgomp -o matrix_mul
+./matrix_mul -c 1000 -r 1000 -b 1000
+Used time for multiplication: 32.000000
+gprof ./matrix_mul >1k_parallel_mul_o0.txt
+./matrix_mul -c 1000 -r 1000 -b 5000
+Used time for multiplication: 166.000000
+gprof ./matrix_mul >5k_parallel_mul_o0.txt
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/parallel_matrix_mul$ make profile OPT=-O3 OUT=parallel_mul_o3.txt
+rm -f matrix_mul *.o gmon.out
+gcc -std=c99 -pedantic -D_DEFAULT_SOURCE -Wall -Wextra -fopenmp -O3 -g -pg   -c -o matrix_mul.o matrix_mul.c
+gcc -pg  matrix_mul.o  -lm -lgomp -o matrix_mul
+./matrix_mul -c 1000 -r 1000 -b 1000
+Used time for multiplication: 0.000000
+gprof ./matrix_mul >1k_parallel_mul_o3.txt
+./matrix_mul -c 1000 -r 1000 -b 5000
+Used time for multiplication: 3.000000
+gprof ./matrix_mul >5k_parallel_mul_o3.txt
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/parallel_matrix_mul$ 
+
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/parallel_matrix_mul$ make
+gcc -std=c99 -pedantic -D_DEFAULT_SOURCE -Wall -Wextra -fopenmp -O0   -c -o matrix_mul.o matrix_mul.c
+gcc   matrix_mul.o  -lm -lgomp -o matrix_mul
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/parallel_matrix_mul$ ./matrix_mul
+Used time for multiplication: 1.000000
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/parallel_matrix_mul$ ./matrix_mul -b 5000
+Used time for multiplication: 7.000000
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/parallel_matrix_mul$ time ./matrix_mul
+Used time for multiplication: 1.000000
+
+real	0m1.528s
+user	0m15.589s
+sys	0m1.784s
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/parallel_matrix_mul$ time ./matrix_mul -b 5000
+Used time for multiplication: 7.000000
+
+real	0m8.083s
+user	1m27.033s
+sys	0m5.503s
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/parallel_matrix_mul$ make clean
+rm -f matrix_mul *.o gmon.out
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/parallel_matrix_mul$ make OPT=-O3
+gcc -std=c99 -pedantic -D_DEFAULT_SOURCE -Wall -Wextra -fopenmp -O3   -c -o matrix_mul.o matrix_mul.c
+gcc   matrix_mul.o  -lm -lgomp -o matrix_mul
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/parallel_matrix_mul$ ./matrix_mul
+Used time for multiplication: 1.000000
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/parallel_matrix_mul$ ./matrix_mul -b 5000
+Used time for multiplication: 3.000000
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/parallel_matrix_mul$ time ./matrix_mul -b 5000
+Used time for multiplication: 3.000000
+
+real	0m3.667s
+user	0m37.480s
+sys	0m5.267s
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/parallel_matrix_mul$ time ./matrix_mul
+Used time for multiplication: 0.000000
+
+real	0m0.726s
+user	0m6.598s
+sys	0m1.769s
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/parallel_matrix_mul$ 
+
+
+
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/parallel_transpose_matrix_mul$ make
+gcc -std=c99 -pedantic -D_DEFAULT_SOURCE -Wall -Wextra -fopenmp -O0   -c -o matrix_mul.o matrix_mul.c
+gcc   matrix_mul.o  -lm -lgomp -o matrix_mul
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/parallel_transpose_matrix_mul$ ./matrix_mul
+Used time for multiplication: 1.000000
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/parallel_transpose_matrix_mul$ ./matrix_mul -b 5000
+Used time for multiplication: 6.000000
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/parallel_transpose_matrix_mul$ time ./matrix_mul
+Used time for multiplication: 1.000000
+
+real	0m1.370s
+user	0m12.963s
+sys	0m2.736s
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/parallel_transpose_matrix_mul$ time ./matrix_mul -b 5000
+Used time for multiplication: 5.000000
+
+real	0m6.350s
+user	1m2.653s
+sys	0m10.305s
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/parallel_transpose_matrix_mul$ make clean
+rm -f matrix_mul *.o gmon.out
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/parallel_transpose_matrix_mul$ make OPT=-O3
+gcc -std=c99 -pedantic -D_DEFAULT_SOURCE -Wall -Wextra -fopenmp -O3   -c -o matrix_mul.o matrix_mul.c
+gcc   matrix_mul.o  -lm -lgomp -o matrix_mul
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/parallel_transpose_matrix_mul$ ./matrix_mul
+Used time for multiplication: 0.000000
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/parallel_transpose_matrix_mul$ ./matrix_mul -b 5000
+Used time for multiplication: 1.000000
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/parallel_transpose_matrix_mul$ time ./matrix_mul
+Used time for multiplication: 0.000000
+
+real	0m0.440s
+user	0m2.252s
+sys	0m2.645s
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/parallel_transpose_matrix_mul$ time ./matrix_mul -b 5000
+Used time for multiplication: 1.000000
+
+real	0m1.763s
+user	0m9.651s
+sys	0m10.314s
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/parallel_transpose_matrix_mul$ 
+
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/parallel_transpose_matrix_mul$ make profile OPT=-O0 OUT=parallel_tr_mul_o0.txt
+rm -f matrix_mul *.o gmon.out
+gcc -std=c99 -pedantic -D_DEFAULT_SOURCE -Wall -Wextra -fopenmp -O0 -g -pg   -c -o matrix_mul.o matrix_mul.c
+gcc -pg  matrix_mul.o  -lm -lgomp -o matrix_mul
+./matrix_mul -c 1000 -r 1000 -b 1000
+Used time for multiplication: 39.000000
+gprof ./matrix_mul >1k_parallel_tr_mul_o0.txt
+./matrix_mul -c 1000 -r 1000 -b 5000
+Used time for multiplication: 182.000000
+gprof ./matrix_mul >5k_parallel_tr_mul_o0.txt
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/parallel_transpose_matrix_mul$ make profile OPT=-O3 OUT=parallel_tr_mul_o3.txt
+rm -f matrix_mul *.o gmon.out
+gcc -std=c99 -pedantic -D_DEFAULT_SOURCE -Wall -Wextra -fopenmp -O3 -g -pg   -c -o matrix_mul.o matrix_mul.c
+gcc -pg  matrix_mul.o  -lm -lgomp -o matrix_mul
+./matrix_mul -c 1000 -r 1000 -b 1000
+Used time for multiplication: 0.000000
+gprof ./matrix_mul >1k_parallel_tr_mul_o3.txt
+./matrix_mul -c 1000 -r 1000 -b 5000
+Used time for multiplication: 1.000000
+gprof ./matrix_mul >5k_parallel_tr_mul_o3.txt
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/parallel_transpose_matrix_mul$ 
+
+
+
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/parallel_transpose_matrix_mul$ export OMP_NUM_THREADS=6
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/parallel_transpose_matrix_mul$ make OPT=-O3
+gcc -std=c99 -pedantic -D_DEFAULT_SOURCE -Wall -Wextra -fopenmp -O3   -c -o matrix_mul.o matrix_mul.c
+gcc   matrix_mul.o  -lm -lgomp -o matrix_mul
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/parallel_transpose_matrix_mul$ time ./matrix_mul
+Used time for multiplication: 1.000000
+
+real	0m0.443s
+user	0m1.711s
+sys	0m0.761s
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/parallel_transpose_matrix_mul$ time ./matrix_mul -b 5000
+Used time for multiplication: 1.000000
+
+real	0m1.800s
+user	0m7.521s
+sys	0m2.739s
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/parallel_transpose_matrix_mul$ export OMP_NUM_THREADS=3
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/parallel_transpose_matrix_mul$ time ./matrix_mul
+Used time for multiplication: 1.000000
+
+real	0m0.517s
+user	0m1.280s
+sys	0m0.214s
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/parallel_transpose_matrix_mul$ time ./matrix_mul -b 5000
+Used time for multiplication: 2.000000
+
+real	0m2.233s
+user	0m5.965s
+sys	0m0.687s
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/parallel_transpose_matrix_mul$ export OMP_NUM_THREADS=1
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/parallel_transpose_matrix_mul$ time ./matrix_mul
+Used time for multiplication: 1.000000
+
+real	0m0.925s
+user	0m0.917s
+sys	0m0.008s
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/parallel_transpose_matrix_mul$ time ./matrix_mul -b 5000
+Used time for multiplication: 5.000000
+
+real	0m4.922s
+user	0m4.885s
+sys	0m0.037s
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/parallel_transpose_matrix_mul$ 
+
+
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/transpose_matrix_mul$ export OMP_NUM_THREADS=6
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/transpose_matrix_mul$ make OPT=-O3
+gcc -std=c99 -pedantic -D_DEFAULT_SOURCE -Wall -Wextra -O3   -c -o matrix_mul.o matrix_mul.c
+gcc   matrix_mul.o  -lm -o matrix_mul
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/transpose_matrix_mul$ time ./matrix_mul
+Used time for multiplication: 0.000000
+
+real	0m0.928s
+user	0m0.915s
+sys	0m0.012s
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/transpose_matrix_mul$ time ./matrix_mul -b 5000
+Used time for multiplication: 5.000000
+
+real	0m4.914s
+user	0m4.874s
+sys	0m0.040s
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/transpose_matrix_mul$ export OMP_NUM_THREADS=3
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/transpose_matrix_mul$ time ./matrix_mul
+Used time for multiplication: 1.000000
+
+real	0m0.934s
+user	0m0.925s
+sys	0m0.008s
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/transpose_matrix_mul$ time ./matrix_mul -b 5000
+Used time for multiplication: 5.000000
+
+real	0m4.921s
+user	0m4.908s
+sys	0m0.012s
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/transpose_matrix_mul$ export OMP_NUM_THREADS=1
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/transpose_matrix_mul$ time ./matrix_mul
+Used time for multiplication: 1.000000
+
+real	0m0.924s
+user	0m0.924s
+sys	0m0.000s
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/transpose_matrix_mul$ time ./matrix_mul -b 5000
+Used time for multiplication: 4.000000
+
+real	0m4.939s
+user	0m4.883s
+sys	0m0.056s
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/transpose_matrix_mul$ make clean
+rm -f matrix_mul *.o gmon.out
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/08/ex2/transpose_matrix_mul$ 
+
