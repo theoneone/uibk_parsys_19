@@ -3,7 +3,8 @@ CC :=gcc
 CFLAGS :=-std=c99 -pedantic -D_DEFAULT_SOURCE -Wall -Wextra $(OPT)
 LDLIBS :=-lm
 ifneq ($(strip $(OUT)),)
-    override OUT := >$(OUT)
+    OUT1 := >1k_$(OUT)
+    OUT2 := >5k_$(OUT)
 endif
 
 .PHONY: all
@@ -17,7 +18,9 @@ profile: CFLAGS +=-g -pg
 profile: LDFLAGS +=-pg
 profile: clean all
 	./matrix_mul -c 1000 -r 1000 -b 1000
-	gprof ./matrix_mul $(OUT)
+	gprof ./matrix_mul $(OUT1)
+	./matrix_mul -c 1000 -r 1000 -b 5000
+	gprof ./matrix_mul $(OUT2)
 
 .PHONY: clean
 clean:
