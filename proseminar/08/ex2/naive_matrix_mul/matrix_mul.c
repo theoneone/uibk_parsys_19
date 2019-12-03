@@ -244,7 +244,7 @@ int main(int argc, char **argv)
 	time(&t_start);
 	multiply(a, b, c);
 	time(&t_end);
-	fprintf(stderr, "Used time for multiplication: %f\n", difftime(t_end, t_start));
+	fprintf(!get_inputs && !get_result ? stdout : stderr, "Used time for multiplication: %f\n", difftime(t_end, t_start));
 	if(get_inputs) {
 		output_to_console(a);
 		puts("\n");
