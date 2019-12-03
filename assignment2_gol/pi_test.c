@@ -7,36 +7,62 @@
 #include <errno.h>
 
 #include <math.h>
+#include <omp.h>
 
-static int get_sample(int fd, uint8_t *sample)
+static int get_random_seed(int fd, unsigned int *seed)
 {
-	int ret;
+	ssize_t ret;
 retry:
-	ret = read(fd, sample, sizeof(*sample));
+	ret = read(fd, seed, sizeof(*seed));
 
 	if (ret < 0) {
 		if (errno == EINTR)
 			goto retry;
 
-		perror("reading random sample");
+		perror("read");
 		return -1;
 	}
 
-	if (ret == 0) {
-		fputs("reading random sample: unexpected end-of-file\n",
-		      stderr);
+	if ((size_t)ret < sizeof(*seed)) {
+		fputs("read from random device truncated\n", stderr);
 		return -1;
 	}
 
 	return 0;
 }
 
+static int count_circle_hits(int randomfd, uint64_t num_samples,
+			     uint64_t *total_hits)
+{
+	uint64_t i, hit_count = 0;
+	unsigned int seed;
+	double x, y;
+	int ret;
+
+#pragma omp critical
+	ret = get_random_seed(randomfd, &seed);
+
+	if (ret)
+		return -1;
+
+	for (i = 0; i < num_samples; ++i) {
+		x = (double)rand_r(&seed) / RAND_MAX;
+		y = (double)rand_r(&seed) / RAND_MAX;
+
+		if (sqrt(x * x + y * y) <= 1.0)
+			hit_count += 1;
+	}
+
+#pragma omp atomic
+	*total_hits += hit_count;
+
+	return 0;
+}
+
 int main(int argc, char **argv)
 {
-	uint64_t i, hit = 0, sample_count = 0;
-	int status = EXIT_FAILURE;
-	uint8_t x, y;
-	int fd;
+	uint64_t hits = 0, sample_count = 0;
+	int fd, status = EXIT_SUCCESS;
 
 	if (argc != 2) {
 		fprintf(stderr, "Usage: %s <sample count>\n", argv[0]);
@@ -57,20 +83,19 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	for (i = 0; i < sample_count; ++i) {
-		if (get_sample(fd, &x))
-			goto out;
-		if (get_sample(fd, &y))
-			goto out;
+	sample_count /= omp_get_num_threads();
 
-		if (sqrt(x * x + y * y) <= 256.0)
-			hit += 1;
+#pragma omp parallel
+	if (count_circle_hits(fd, sample_count, &hits))
+		status = EXIT_FAILURE;
+
+	sample_count *= omp_get_num_threads();
+
+	if (status == EXIT_SUCCESS) {
+		printf("Hit/sample ratio: %lu,%lu\n", hits, sample_count);
+		printf("PI approximation: %f\n", 4.0 * hits / sample_count);
 	}
 
-	printf("%lu,%lu\n", hit, sample_count);
-
-	status = EXIT_SUCCESS;
-out:
 	close(fd);
 	return status;
 }

@@ -1,5 +1,5 @@
-CFLAGS := -std=c99 -pedantic -Wall -Wextra -D_GNU_SOURCE
-LDFLAGS := -lm
+CFLAGS := -std=c99 -pedantic -Wall -Wextra -D_GNU_SOURCE -fopenmp
+LDLIBS := -lm -lgomp
 
 .PHONY: all
 all: pi_test pi_eval

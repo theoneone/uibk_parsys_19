@@ -1,4 +1,5 @@
-CFLAGS=-O2 -std=c99 -Wall -Wextra -pedantic
+CFLAGS=-O2 -std=c99 -Wall -Wextra -pedantic -fopenmp -O3 -Ofast
+LDLIBS=-lgomp
 
 heat_stencil_2D_seq: heat_stencil_2D_seq.o gen_image.o
 
