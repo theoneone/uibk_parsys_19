@@ -168,12 +168,12 @@ fail_arg:
 
 static double gen_number(const double min, const double max)
 {
-	return min + ((double)rand() / RAND_MAX) * (max - min);
+	return min + ((double)rand_r(&rand_seed) / RAND_MAX) * (max - min);
 }
 
 static double gen_integer(const double min, const double max)
 {
-	return round(min + ((double)rand() / RAND_MAX) * (max - min));
+	return round(min + ((double)rand_r(&rand_seed) / RAND_MAX) * (max - min));
 }
 
 static int init_matrix(matrix *a, const int columns, const int rows, double (*generator)(const double, const double))
