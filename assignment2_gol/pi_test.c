@@ -83,13 +83,9 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	sample_count /= omp_get_num_threads();
-
 #pragma omp parallel
-	if (count_circle_hits(fd, sample_count, &hits))
+	if (count_circle_hits(fd, sample_count / omp_get_num_threads(), &hits))
 		status = EXIT_FAILURE;
-
-	sample_count *= omp_get_num_threads();
 
 	if (status == EXIT_SUCCESS) {
 		printf("Hit/sample ratio: %lu,%lu\n", hits, sample_count);
