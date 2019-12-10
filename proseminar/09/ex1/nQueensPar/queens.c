@@ -2,13 +2,12 @@
 #include <getopt.h>
 #include <stdio.h>
 #include <errno.h>
-#include <math.h>
 #include <time.h>
 
 /****************************** simulation data ******************************/
 
+static unsigned long results_found = 0;
 static int n_queens = 8;
-static int results_found = 0;
 static int print_all = 0;
 static int *board;
 
@@ -111,12 +110,18 @@ static inline void output_to_console() {
 	puts("\n");
 }
 
+
+static inline int iabs(int value)
+{
+	return value < 0 ? -value : value;
+}
+
 static int feasible(int row, int col) {
 	for (int i = 0; i < row; ++i) {
 		if(
 				// check row: board contains 1 queen by data structure constraints
 				col == board[i] || // check column
-				abs(row - i) == abs(col - board[i]) // check diagonals
+				iabs(row - i) == iabs(col - board[i]) // check diagonals
 				) {
 			return 0;
 		}
@@ -179,7 +184,7 @@ int main(int argc, char **argv) {
 	}
 #pragma omp barrier
 
-	printf("%d solutions found.\n", results_found);
+	printf("%lu solutions found.\n", results_found);
 	status = EXIT_SUCCESS;
 	free(board);
 	return status;
