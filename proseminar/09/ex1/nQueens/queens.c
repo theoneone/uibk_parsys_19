@@ -1,8 +1,25 @@
+#include <stdint.h>
 #include <stdlib.h>
 #include <getopt.h>
 #include <stdio.h>
 #include <errno.h>
 #include <time.h>
+
+#define MAX_QUEENS 16
+
+typedef uint64_t board_t;
+
+static inline int get_queen_col_from_row(board_t board, unsigned int row)
+{
+	return (board >> (row * 4UL)) & 0x0F;
+}
+
+static inline board_t set_queen(board_t board, unsigned int row,
+				unsigned int col)
+{
+	return (board & ~(0x0FUL << (row * 4UL))) |
+		((col & 0x0FUL) << (row * 4UL));
+}
 
 /****************************** simulation data ******************************/
 
@@ -89,6 +106,12 @@ static void process_options(int argc, char **argv)
 		goto fail_arg;
 	}
 
+	if (n_queens > MAX_QUEENS) {
+		fprintf(stderr, "Number of queens must be at most %d!\n",
+			MAX_QUEENS);
+		goto fail_arg;
+	}
+
 	if (optind < argc) {
 		fputs("Unknown extra arguments.\n", stderr);
 		goto fail_arg;
@@ -102,10 +125,11 @@ fail_arg:
 
 /*****************************************************************************/
 
-static inline void output_to_console(const int *board) {
-	for (int i = 0; i < n_queens; ++i) {
-		printf("%d/%d, ", i, board[i]);
-	}
+static inline void output_to_console(board_t board)
+{
+	for (int i = 0; i < n_queens; ++i)
+		printf("%d/%d, ", i, get_queen_col_from_row(board, i));
+
 	puts("\n");
 }
 
@@ -114,12 +138,14 @@ static inline int iabs(int value)
 	return value < 0 ? -value : value;
 }
 
-static int feasible(const int *board, int row, int col) {
+static int feasible(board_t board, int row, int col) {
 	for (int i = 0; i < row; ++i) {
+		int pcol = get_queen_col_from_row(board, i);
+
 		if(
 				// check row: board contains 1 queen by data structure constraints
-				col == board[i] || // check column
-				iabs(row - i) == iabs(col - board[i]) // check diagonals
+				col == pcol || // check column
+				iabs(row - i) == iabs(col - pcol) // check diagonals
 				) {
 			return 0;
 		}
@@ -128,12 +154,12 @@ static int feasible(const int *board, int row, int col) {
 }
 
 // backtracking explained: see https://www.youtube.com/watch?v=R8bM6pxlrLY
-static void nqueens(int *board, int row)
+static void nqueens(board_t board, int row)
 {
 	if(row < n_queens) {
 		for (int i = 0; i < n_queens; ++i) {
 			if (feasible(board, row, i)) {
-				board[row] = i;
+				board = set_queen(board, row, i);
 				nqueens(board, row + 1);
 			}
 		}
@@ -145,21 +171,12 @@ static void nqueens(int *board, int row)
 	}
 }
 
-int main(int argc, char **argv) {
-	int status = EXIT_FAILURE;
-	int *board;
-
+int main(int argc, char **argv)
+{
 	process_options(argc, argv);
 
-	if((board = (int*)calloc(n_queens, sizeof(int))) == NULL) {
-		fputs("Error allocating memory.", stderr);
-		return EXIT_FAILURE;
-	}
-
-	nqueens(board, 0);
+	nqueens(0, 0);
 
 	printf("%lu solutions found.\n", results_found);
-	status = EXIT_SUCCESS;
-	free(board);
-	return status;
+	return EXIT_SUCCESS;
 }
