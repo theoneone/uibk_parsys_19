@@ -155,19 +155,30 @@ static int feasible(const board_t *board, int row, int col) {
 }
 
 // backtracking explained: see https://www.youtube.com/watch?v=R8bM6pxlrLY
-static void nqueens(board_t board, int row)
+static void nqueens(board_t *board, int row)
 {
 	if(row < n_queens) {
-		for (int i = 0; i < n_queens; ++i) {
-			if (feasible(&board, row, i)) {
-				set_queen(&board, row, i);
-				nqueens(board, row + 1);
+		#pragma omp parallel
+		#pragma omp single
+		{
+			for (int i = 0; i < n_queens; ++i) {
+				if (!feasible(board, row, i))
+					continue;
+
+				#pragma omp task
+				{
+					board_t copy = *board;
+					set_queen(&copy, row, i);
+					nqueens(&copy, row + 1);
+				}
 			}
 		}
 	} else {
-		++results_found;
+		#pragma omp critical
+		results_found += 1;
+
 		if (print_all) {
-			output_to_console(&board);
+			output_to_console(board);
 		}
 	}
 }
@@ -179,7 +190,7 @@ int main(int argc, char **argv)
 	process_options(argc, argv);
 
 	memset(&empty, 0, sizeof(empty));
-	nqueens(empty, 0);
+	nqueens(&empty, 0);
 
 	printf("%lu solutions found.\n", results_found);
 	return EXIT_SUCCESS;
