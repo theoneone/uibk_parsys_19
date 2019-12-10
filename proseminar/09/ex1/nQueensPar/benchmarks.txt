@@ -1,0 +1,70 @@
+littlelion@PC00-C846:/media/daten/Daten-Bibliothek/0_Parallel-Systems/uibk_parsys_19/proseminar/09/ex1/nQueens$ time ./queens -n 14
+365596 solutions found.
+
+real	0m18.067s
+user	0m18.051s
+sys	0m0.012s
+littlelion@PC00-C846:/media/daten/Daten-Bibliothek/0_Parallel-Systems/uibk_parsys_19/proseminar/09/ex1/nQueens$ cd ../nQueensPar/
+littlelion@PC00-C846:/media/daten/Daten-Bibliothek/0_Parallel-Systems/uibk_parsys_19/proseminar/09/ex1/nQueensPar$ time ./queens -n 14
+365480 solutions found.
+
+real	0m20.688s
+user	0m58.534s
+sys	0m14.676s
+littlelion@PC00-C846:/media/daten/Daten-Bibliothek/0_Parallel-Systems/uibk_parsys_19/proseminar/09/ex1/nQueensPar$ export OMP_NUM_THREADS=2
+littlelion@PC00-C846:/media/daten/Daten-Bibliothek/0_Parallel-Systems/uibk_parsys_19/proseminar/09/ex1/nQueensPar$ time ./queens -n 14
+365561 solutions found.
+
+real	0m25.329s
+user	0m39.639s
+sys	0m10.809s
+littlelion@PC00-C846:/media/daten/Daten-Bibliothek/0_Parallel-Systems/uibk_parsys_19/proseminar/09/ex1/nQueensPar$ export OMP_NUM_THREADS=4
+littlelion@PC00-C846:/media/daten/Daten-Bibliothek/0_Parallel-Systems/uibk_parsys_19/proseminar/09/ex1/nQueensPar$ time ./queens -n 14
+379850 solutions found.
+
+real	0m21.193s
+user	0m59.788s
+sys	0m14.295s
+littlelion@PC00-C846:/media/daten/Daten-Bibliothek/0_Parallel-Systems/uibk_parsys_19/proseminar/09/ex1/nQueensPar$ export OMP_NUM_THREADS=1
+littlelion@PC00-C846:/media/daten/Daten-Bibliothek/0_Parallel-Systems/uibk_parsys_19/proseminar/09/ex1/nQueensPar$ time ./queens -n 14
+365596 solutions found.
+
+real	0m47.027s
+user	0m36.444s
+sys	0m10.570s
+littlelion@PC00-C846:/media/daten/Daten-Bibliothek/0_Parallel-Systems/uibk_parsys_19/proseminar/09/ex1/nQueensPar$ make
+gcc -std=c99 -pedantic -D_DEFAULT_SOURCE -Wall -Wextra -fopenmp -O0   -c -o queens.o queens.c
+gcc   queens.o  -lgomp -o queens
+littlelion@PC00-C846:/media/daten/Daten-Bibliothek/0_Parallel-Systems/uibk_parsys_19/proseminar/09/ex1/nQueensPar$ time ./queens -n 14
+365596 solutions found.
+
+real	0m19.835s
+user	0m19.832s
+sys	0m0.001s
+littlelion@PC00-C846:/media/daten/Daten-Bibliothek/0_Parallel-Systems/uibk_parsys_19/proseminar/09/ex1/nQueensPar$ 
+
+littlelion@PC00-C846:/media/daten/Daten-Bibliothek/0_Parallel-Systems/uibk_parsys_19/proseminar/09/ex1/nQueensPar$ echo $OMP_NUM_THREADS
+3
+littlelion@PC00-C846:/media/daten/Daten-Bibliothek/0_Parallel-Systems/uibk_parsys_19/proseminar/09/ex1/nQueensPar$ time ./queens -n 14
+365596 solutions found.
+
+real	0m48.033s
+user	0m37.903s
+sys	0m10.185s
+littlelion@PC00-C846:/media/daten/Daten-Bibliothek/0_Parallel-Systems/uibk_parsys_19/proseminar/09/ex1/nQueensPar$ export OMP_NUM_THREADS=4
+littlelion@PC00-C846:/media/daten/Daten-Bibliothek/0_Parallel-Systems/uibk_parsys_19/proseminar/09/ex1/nQueensPar$ time ./queens -n 14
+365596 solutions found.
+
+real	0m48.063s
+user	0m37.847s
+sys	0m10.298s
+littlelion@PC00-C846:/media/daten/Daten-Bibliothek/0_Parallel-Systems/uibk_parsys_19/proseminar/09/ex1/nQueensPar$ export OMP_NUM_THREADS=1
+littlelion@PC00-C846:/media/daten/Daten-Bibliothek/0_Parallel-Systems/uibk_parsys_19/proseminar/09/ex1/nQueensPar$ time ./queens -n 14
+365596 solutions found.
+
+real	0m47.954s
+user	0m37.959s
+sys	0m9.990s
+littlelion@PC00-C846:/media/daten/Daten-Bibliothek/0_Parallel-Systems/uibk_parsys_19/proseminar/09/ex1/nQueensPar$ 
+
+
