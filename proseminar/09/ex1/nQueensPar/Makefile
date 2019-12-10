@@ -1,7 +1,7 @@
-OPT :=-O0
+OPT :=-O2
 CC :=gcc
-CFLAGS :=-std=c99 -pedantic -D_DEFAULT_SOURCE -Wall -Wextra $(OPT)
-LDLIBS :=-lm
+CFLAGS :=-std=c99 -pedantic -D_DEFAULT_SOURCE -Wall -Wextra -fopenmp $(OPT)
+LDLIBS :=-lm -lgomp
 
 .PHONY: all
 all: queens

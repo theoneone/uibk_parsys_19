@@ -125,22 +125,43 @@ static int feasible(int row, int col) {
 }
 
 // backtracking explained: see https://www.youtube.com/watch?v=R8bM6pxlrLY
-static void nqueens(int row)
+static int nqueens(int row, int *board, int n)
 {
-	if(row < n_queens) {
-		for (int i = 0; i < n_queens; ++i) {
+	int err = 0;
+	if(row < n) {
+		for (int i = 0; i < n; ++i) {
 			if (feasible(row, i)) {
 				board[row] = i;
-				//TODO pragma task ...
-				nqueens(row + 1);
+#pragma omp task default(none) shared(err, n, stderr) firstprivate(row, board)
+				{
+				int *brd;
+				if((brd = (int*)malloc(n*sizeof(int))) == NULL) {
+					fputs("Error allocating memory.", stderr);
+					err |= 1;
+				} else {
+					for(int j = 0; j < n; ++j) {
+						brd[j] = board[j];
+					}
+					err |= nqueens(row + 1, brd, n);
+					free(brd);
+					}
+				}
+#pragma omp taskwait
 			}
 		}
 	} else {
+#pragma omp critical
+		{
 		++results_found;
+		}
 		if (print_all) {
+#pragma omp critical
+			{
 			output_to_console();
+			}
 		}
 	}
+	return err;
 }
 
 int main(int argc, char **argv) {
@@ -152,8 +173,11 @@ int main(int argc, char **argv) {
 		fputs("Error allocating memory.", stderr);
 		return EXIT_FAILURE;
 	}
-// TODO pragma parallel
-	nqueens(0);
+#pragma omp parallel firstprivate(board)
+	{
+	nqueens(0, board, n_queens);
+	}
+#pragma omp barrier
 
 	printf("%d solutions found.\n", results_found);
 	status = EXIT_SUCCESS;
