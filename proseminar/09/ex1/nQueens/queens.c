@@ -9,7 +9,6 @@
 static unsigned long results_found = 0;
 static int n_queens = 8;
 static int print_all = 0;
-static int *board;
 
 /************************** command line processing **************************/
 
@@ -103,7 +102,7 @@ fail_arg:
 
 /*****************************************************************************/
 
-static inline void output_to_console() {
+static inline void output_to_console(const int *board) {
 	for (int i = 0; i < n_queens; ++i) {
 		printf("%d/%d, ", i, board[i]);
 	}
@@ -115,7 +114,7 @@ static inline int iabs(int value)
 	return value < 0 ? -value : value;
 }
 
-static int feasible(int row, int col) {
+static int feasible(const int *board, int row, int col) {
 	for (int i = 0; i < row; ++i) {
 		if(
 				// check row: board contains 1 queen by data structure constraints
@@ -129,25 +128,26 @@ static int feasible(int row, int col) {
 }
 
 // backtracking explained: see https://www.youtube.com/watch?v=R8bM6pxlrLY
-static void nqueens(int row)
+static void nqueens(int *board, int row)
 {
 	if(row < n_queens) {
 		for (int i = 0; i < n_queens; ++i) {
-			if (feasible(row, i)) {
+			if (feasible(board, row, i)) {
 				board[row] = i;
-				nqueens(row + 1);
+				nqueens(board, row + 1);
 			}
 		}
 	} else {
 		++results_found;
 		if (print_all) {
-			output_to_console();
+			output_to_console(board);
 		}
 	}
 }
 
 int main(int argc, char **argv) {
 	int status = EXIT_FAILURE;
+	int *board;
 
 	process_options(argc, argv);
 
@@ -156,7 +156,7 @@ int main(int argc, char **argv) {
 		return EXIT_FAILURE;
 	}
 
-	nqueens(0);
+	nqueens(board, 0);
 
 	printf("%lu solutions found.\n", results_found);
 	status = EXIT_SUCCESS;
