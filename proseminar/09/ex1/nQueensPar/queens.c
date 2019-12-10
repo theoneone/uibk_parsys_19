@@ -9,7 +9,7 @@
 static unsigned long results_found = 0;
 static int n_queens = 8;
 static int print_all = 0;
-static int *board;
+//static int *board;
 
 /************************** command line processing **************************/
 
@@ -103,7 +103,7 @@ fail_arg:
 
 /*****************************************************************************/
 
-static inline void output_to_console() {
+static inline void output_to_console(int *board) {
 	for (int i = 0; i < n_queens; ++i) {
 		printf("%d/%d, ", i, board[i]);
 	}
@@ -116,7 +116,7 @@ static inline int iabs(int value)
 	return value < 0 ? -value : value;
 }
 
-static int feasible(int row, int col) {
+static int feasible(int row, int col, int *board) {
 	for (int i = 0; i < row; ++i) {
 		if(
 				// check row: board contains 1 queen by data structure constraints
@@ -135,9 +135,13 @@ static int nqueens(int row, int *board, int n)
 	int err = 0;
 	if(row < n) {
 		for (int i = 0; i < n; ++i) {
-			if (feasible(row, i)) {
+			if (feasible(row, i, board)) {
 				board[row] = i;
-#pragma omp task default(none) shared(err, n, stderr) firstprivate(row, board)
+#pragma omp parallel sections
+				{
+//#pragma omp sections
+//#pragma omp task default(none) shared(err, n, stderr, print_all) firstprivate(row, board)
+#pragma omp section
 				{
 				int *brd;
 				if((brd = (int*)malloc(n*sizeof(int))) == NULL) {
@@ -151,19 +155,19 @@ static int nqueens(int row, int *board, int n)
 					free(brd);
 					}
 				}
-#pragma omp taskwait
+				}
+//#pragma omp taskwait
 			}
 		}
 	} else {
 #pragma omp critical
 		{
 		++results_found;
-		}
 		if (print_all) {
-#pragma omp critical
 			{
-			output_to_console();
+			output_to_console(board);
 			}
+		}
 		}
 	}
 	return err;
@@ -174,18 +178,19 @@ int main(int argc, char **argv) {
 
 	process_options(argc, argv);
 
+//#pragma omp parallel
+	{
+	int *board;
 	if((board = (int*)calloc(n_queens, sizeof(int))) == NULL) {
 		fputs("Error allocating memory.", stderr);
-		return EXIT_FAILURE;
+	} else {
+		nqueens(0, board, n_queens);
+		free(board);
+		status = EXIT_SUCCESS;
 	}
-#pragma omp parallel firstprivate(board)
-	{
-	nqueens(0, board, n_queens);
 	}
-#pragma omp barrier
+//#pragma omp barrier
 
 	printf("%lu solutions found.\n", results_found);
-	status = EXIT_SUCCESS;
-	free(board);
 	return status;
 }
