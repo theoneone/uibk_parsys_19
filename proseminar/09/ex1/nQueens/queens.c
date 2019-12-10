@@ -1,24 +1,25 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <getopt.h>
+#include <string.h>
 #include <stdio.h>
 #include <errno.h>
 #include <time.h>
 
-#define MAX_QUEENS 16
+#define MAX_QUEENS 32
 
-typedef uint64_t board_t;
+typedef struct {
+	uint8_t columns[MAX_QUEENS];
+} __attribute__ ((aligned (64))) board_t;
 
-static inline int get_queen_col_from_row(board_t board, unsigned int row)
+static inline int get_queen_col_from_row(const board_t *board, unsigned int row)
 {
-	return (board >> (row * 4UL)) & 0x0F;
+	return board->columns[row];
 }
 
-static inline board_t set_queen(board_t board, unsigned int row,
-				unsigned int col)
+static inline void set_queen(board_t *board, unsigned int row, unsigned int col)
 {
-	return (board & ~(0x0FUL << (row * 4UL))) |
-		((col & 0x0FUL) << (row * 4UL));
+	board->columns[row] = col;
 }
 
 /****************************** simulation data ******************************/
@@ -125,7 +126,7 @@ fail_arg:
 
 /*****************************************************************************/
 
-static inline void output_to_console(board_t board)
+static inline void output_to_console(const board_t *board)
 {
 	for (int i = 0; i < n_queens; ++i)
 		printf("%d/%d, ", i, get_queen_col_from_row(board, i));
@@ -138,7 +139,7 @@ static inline int iabs(int value)
 	return value < 0 ? -value : value;
 }
 
-static int feasible(board_t board, int row, int col) {
+static int feasible(const board_t *board, int row, int col) {
 	for (int i = 0; i < row; ++i) {
 		int pcol = get_queen_col_from_row(board, i);
 
@@ -158,24 +159,27 @@ static void nqueens(board_t board, int row)
 {
 	if(row < n_queens) {
 		for (int i = 0; i < n_queens; ++i) {
-			if (feasible(board, row, i)) {
-				board = set_queen(board, row, i);
+			if (feasible(&board, row, i)) {
+				set_queen(&board, row, i);
 				nqueens(board, row + 1);
 			}
 		}
 	} else {
 		++results_found;
 		if (print_all) {
-			output_to_console(board);
+			output_to_console(&board);
 		}
 	}
 }
 
 int main(int argc, char **argv)
 {
+	board_t empty;
+
 	process_options(argc, argv);
 
-	nqueens(0, 0);
+	memset(&empty, 0, sizeof(empty));
+	nqueens(empty, 0);
 
 	printf("%lu solutions found.\n", results_found);
 	return EXIT_SUCCESS;
