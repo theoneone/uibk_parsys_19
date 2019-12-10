@@ -1,15 +1,32 @@
+#include <stdint.h>
 #include <stdlib.h>
 #include <getopt.h>
+#include <string.h>
 #include <stdio.h>
 #include <errno.h>
 #include <time.h>
+
+#define MAX_QUEENS 32
+
+typedef struct {
+	uint8_t columns[MAX_QUEENS];
+} __attribute__ ((aligned (64))) board_t;
+
+static inline int get_queen_col_from_row(const board_t *board, unsigned int row)
+{
+	return board->columns[row];
+}
+
+static inline void set_queen(board_t *board, unsigned int row, unsigned int col)
+{
+	board->columns[row] = col;
+}
 
 /****************************** simulation data ******************************/
 
 static unsigned long results_found = 0;
 static int n_queens = 8;
 static int print_all = 0;
-static int *board;
 
 /************************** command line processing **************************/
 
@@ -90,6 +107,12 @@ static void process_options(int argc, char **argv)
 		goto fail_arg;
 	}
 
+	if (n_queens > MAX_QUEENS) {
+		fprintf(stderr, "Number of queens must be at most %d!\n",
+			MAX_QUEENS);
+		goto fail_arg;
+	}
+
 	if (optind < argc) {
 		fputs("Unknown extra arguments.\n", stderr);
 		goto fail_arg;
@@ -103,10 +126,11 @@ fail_arg:
 
 /*****************************************************************************/
 
-static inline void output_to_console() {
-	for (int i = 0; i < n_queens; ++i) {
-		printf("%d/%d, ", i, board[i]);
-	}
+static inline void output_to_console(const board_t *board)
+{
+	for (int i = 0; i < n_queens; ++i)
+		printf("%d/%d, ", i, get_queen_col_from_row(board, i));
+
 	puts("\n");
 }
 
@@ -115,12 +139,14 @@ static inline int iabs(int value)
 	return value < 0 ? -value : value;
 }
 
-static int feasible(int row, int col) {
+static int feasible(const board_t *board, int row, int col) {
 	for (int i = 0; i < row; ++i) {
+		int pcol = get_queen_col_from_row(board, i);
+
 		if(
 				// check row: board contains 1 queen by data structure constraints
-				col == board[i] || // check column
-				iabs(row - i) == iabs(col - board[i]) // check diagonals
+				col == pcol || // check column
+				iabs(row - i) == iabs(col - pcol) // check diagonals
 				) {
 			return 0;
 		}
@@ -129,37 +155,43 @@ static int feasible(int row, int col) {
 }
 
 // backtracking explained: see https://www.youtube.com/watch?v=R8bM6pxlrLY
-static void nqueens(int row)
+static void nqueens(board_t *board, int row)
 {
 	if(row < n_queens) {
-		for (int i = 0; i < n_queens; ++i) {
-			if (feasible(row, i)) {
-				board[row] = i;
-				nqueens(row + 1);
+		#pragma omp parallel
+		#pragma omp single
+		{
+			for (int i = 0; i < n_queens; ++i) {
+				if (!feasible(board, row, i))
+					continue;
+
+				#pragma omp task
+				{
+					board_t copy = *board;
+					set_queen(&copy, row, i);
+					nqueens(&copy, row + 1);
+				}
 			}
 		}
 	} else {
-		++results_found;
+		#pragma omp critical
+		results_found += 1;
+
 		if (print_all) {
-			output_to_console();
+			output_to_console(board);
 		}
 	}
 }
 
-int main(int argc, char **argv) {
-	int status = EXIT_FAILURE;
+int main(int argc, char **argv)
+{
+	board_t empty;
 
 	process_options(argc, argv);
 
-	if((board = (int*)calloc(n_queens, sizeof(int))) == NULL) {
-		fputs("Error allocating memory.", stderr);
-		return EXIT_FAILURE;
-	}
-
-	nqueens(0);
+	memset(&empty, 0, sizeof(empty));
+	nqueens(&empty, 0);
 
 	printf("%lu solutions found.\n", results_found);
-	status = EXIT_SUCCESS;
-	free(board);
-	return status;
+	return EXIT_SUCCESS;
 }
