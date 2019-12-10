@@ -6,8 +6,8 @@
 
 /****************************** simulation data ******************************/
 
+static unsigned long results_found = 0;
 static int n_queens = 8;
-static int results_found = 0;
 static int print_all = 0;
 static int *board;
 
@@ -158,7 +158,7 @@ int main(int argc, char **argv) {
 
 	nqueens(0);
 
-	printf("%d solutions found.\n", results_found);
+	printf("%lu solutions found.\n", results_found);
 	status = EXIT_SUCCESS;
 	free(board);
 	return status;
