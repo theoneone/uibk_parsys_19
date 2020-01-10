@@ -1,17 +1,19 @@
-CC=gcc
-CFLAGS=-O3 -g3 -lm
+CC := gcc
+CFLAGS := -O3 -g3
+LDLIBS := -lm
 
 .PHONY: all
 all: real
 
-SRC=$(wildcard *.c)
+objects := $(patsubst %.c,%.o,$(wildcard *.c))
 
-real: $(SRC)
-	$(CC) $(CFLAGS) $(SRC) -o real
+*.o: *.c
+
+real: $(objects)
 
 .PHONY: clean
 clean:
-	$(RM) real
+	$(RM) real *.o
 
 .PHONY: run
 run: all
