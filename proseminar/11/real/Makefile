@@ -1,20 +1,20 @@
 CC=gcc
-CC_FLAGS=-O3 -g3 -lm
+CFLAGS=-O3 -g3 -lm
 
-.PHONEY: all
+.PHONY: all
 all: real
 
 SRC=$(wildcard *.c)
 
 real: $(SRC)
-	@$(CC) $(CC_FLAGS) $(SRC) -o real
+	$(CC) $(CFLAGS) $(SRC) -o real
 
-.PHONEY: clean
+.PHONY: clean
 clean:
-	@rm real
+	$(RM) real
 
-.PHONEY: run
+.PHONY: run
 run: all
 	@echo "Sequential:"
-	@./real
+	./real
 	@echo
