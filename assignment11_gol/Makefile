@@ -1,5 +1,5 @@
 CC=gcc
-CC_FLAGS=-O3 -g3 -lm
+CC_FLAGS=-O3 -g3 -lm -fopenmp -march=native -mtune=native
 
 .PHONEY: all
 all: real

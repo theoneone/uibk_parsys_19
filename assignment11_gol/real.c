@@ -457,12 +457,14 @@ static void psinv(void *or, void *ou, int n1, int n2, int n3,
   if (timeron) timer_start(T_psinv);
   for (i3 = 1; i3 < n3-1; i3++) {
     for (i2 = 1; i2 < n2-1; i2++) {
+      #pragma omp parallel for
       for (i1 = 0; i1 < n1; i1++) {
         r1[i1] = r[i3][i2-1][i1] + r[i3][i2+1][i1]
                + r[i3-1][i2][i1] + r[i3+1][i2][i1];
         r2[i1] = r[i3-1][i2-1][i1] + r[i3-1][i2+1][i1]
                + r[i3+1][i2-1][i1] + r[i3+1][i2+1][i1];
       }
+      #pragma omp parallel for
       for (i1 = 1; i1 < n1-1; i1++) {
         u[i3][i2][i1] = u[i3][i2][i1]
                       + c[0] * r[i3][i2][i1]
@@ -517,14 +519,17 @@ static void resid(void *ou, void *ov, void *or, int n1, int n2, int n3,
   double u1[M], u2[M];
 
   if (timeron) timer_start(T_resid);
+
   for (i3 = 1; i3 < n3-1; i3++) {
     for (i2 = 1; i2 < n2-1; i2++) {
+      #pragma omp parallel for
       for (i1 = 0; i1 < n1; i1++) {
         u1[i1] = u[i3][i2-1][i1] + u[i3][i2+1][i1]
                + u[i3-1][i2][i1] + u[i3+1][i2][i1];
         u2[i1] = u[i3-1][i2-1][i1] + u[i3-1][i2+1][i1]
                + u[i3+1][i2-1][i1] + u[i3+1][i2+1][i1];
       }
+      #pragma omp parallel for
       for (i1 = 1; i1 < n1-1; i1++) {
         r[i3][i2][i1] = v[i3][i2][i1]
                       - a[0] * u[i3][i2][i1]
@@ -938,6 +943,7 @@ static void zran3(void *oz, int n1, int n2, int n3, int nx1, int ny1, int k)
   //---------------------------------------------------------------------
   // fill array
   //---------------------------------------------------------------------
+  #pragma omp parallel for private(i2,i3,xx,x1) collapse(1)
   for (i3 = 1; i3 < e3; i3++) {
     x1 = starts[i3];
     for (i2 = 1; i2 < e2; i2++) {
