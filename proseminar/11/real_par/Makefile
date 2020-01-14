@@ -1,4 +1,5 @@
 OPT :=-O0
+PROF_OUT := profile.txt
 CC := gcc
 CFLAGS := -fopenmp -pedantic -Wall -Wextra $(OPT)
 LDLIBS := -lm -lgomp
@@ -27,4 +28,4 @@ profile: CFLAGS +=-g3 -pg
 profile: LDFLAGS +=-pg
 profile: clean all
 	./real
-	gprof ./real > profile.txt
+	gprof ./real > $(PROF_OUT)
