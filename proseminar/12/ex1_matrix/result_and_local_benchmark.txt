@@ -1,0 +1,35 @@
+chpl -o matrix_mul matrix_mul.chpl
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/12/ex1_matrix$ ./matrix_mul --a_cols=3 --a_rows=4 --b_cols=5 --print_in=true --print_out=true
+Initialization time: 0.00018 s
+Computation time: 5e-06 s
+a = 
+0.0600269 0.0947661 0.208836
+0.972295 0.66702 0.270843
+0.143923 0.242566 0.326099
+0.912129 0.0219542 0.209441
+
+b = 
+0.0600269 0.0947661 0.208836 0.972295 0.66702
+0.270843 0.143923 0.242566 0.326099 0.912129
+0.0219542 0.209441 0.774648 0.669977 0.13475
+
+c = 
+0.0338547 0.0630663 0.197297 0.229182 0.154619
+0.244967 0.244865 0.574654 1.34433 1.29344
+0.0814956 0.116848 0.341506 0.437514 0.361192
+0.0652964 0.133464 0.358054 1.03434 0.656655
+
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/12/ex1_matrix$ ./matrix_mul --a_cols=100 --a_rows=100 --b_cols=100
+Initialization time: 0.001154 s
+Computation time: 0.044629 s
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/12/ex1_matrix$ ./matrix_mul --a_cols=100 --a_rows=1000 --b_cols=1000
+Initialization time: 0.011002 s
+Computation time: 4.50652 s
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/12/ex1_matrix$ ./matrix_mul --a_cols=1000 --a_rows=1000 --b_cols=1000
+Initialization time: 0.08653 s
+Computation time: 47.6623 s
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/12/ex1_matrix$ ./matrix_mul
+Initialization time: 0.664746 s
+Computation time: 1271.19 s
+c8451238@pc033-c813:~/git/uibk_parsys_19/proseminar/12/ex1_matrix$ 
+
