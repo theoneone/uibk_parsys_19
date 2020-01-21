@@ -2,7 +2,6 @@
   simple matrix multiplication algorithm
  */
 
-use CyclicDist;
 use Random;
 use Time;
 
