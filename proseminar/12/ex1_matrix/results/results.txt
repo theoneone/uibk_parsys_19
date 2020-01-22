@@ -1,0 +1,5 @@
+comment to the result:
+
+Exercise 1 - matrix multiplication:
+The benchmarks seem pretty odd, because the wall time stays almost the same, but average cpu load and system time increases with the number of used cores, such that all involved cores are close to 100% load.
+
