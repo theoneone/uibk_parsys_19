@@ -8,5 +8,6 @@ matrix_mul: matrix_mul.chpl
 
 
 .PHONY: clean
+clean:
 	$(RM) matrix_mul
 
